@@ -1,7 +1,7 @@
 use http_req::request;
 pub use octocrab;
 
-use octocrab::{models::Event, Octocrab};
+use octocrab::{models::events::Event, Octocrab};
 use once_cell::sync::OnceCell;
 
 const GH_API_PREFIX: &str = "http://github-flows.vercel.app/api";
@@ -54,8 +54,7 @@ pub fn revoke_listeners() {
     }
 }
 
-// TODO: real listen wt
-pub fn listen_to_xxx<F>(callback: F)
+pub fn listen_to_event<F>(callback: F)
 where
     F: Fn(Event),
 {
@@ -104,9 +103,8 @@ where
     }
 }
 
+static INSTANCE: OnceCell<Octocrab> = OnceCell::new();
 pub fn get_octo() -> &'static Octocrab {
-    static INSTANCE: OnceCell<Octocrab> = OnceCell::new();
-
     INSTANCE.get_or_init(|| {
         Octocrab::builder()
             .base_url(GH_API_PREFIX)
