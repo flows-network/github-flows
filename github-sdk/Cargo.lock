@@ -464,6 +464,7 @@ name = "github-sdk"
 version = "0.1.0"
 dependencies = [
  "octocrab",
+ "once_cell",
  "reqwest_wasi",
  "tokio_wasi",
 ]
