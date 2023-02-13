@@ -463,9 +463,11 @@ checksum = "221996f774192f0f718773def8201c4ae31f02616a54ccfc2d358bb0e5cefdec"
 name = "github-sdk"
 version = "0.1.0"
 dependencies = [
+ "http_req_wasi",
  "octocrab",
  "once_cell",
  "reqwest_wasi",
+ "serde_json",
  "tokio_wasi",
 ]
 
@@ -582,6 +584,16 @@ dependencies = [
  "bytes",
  "http",
  "pin-project-lite",
+]
+
+[[package]]
+name = "http_req_wasi"
+version = "0.10.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3556b0e995620949f801b847c8706fd8ae1c15f42eeaa9c0da3111b2eb0c6f1b"
+dependencies = [
+ "unicase",
+ "wasmedge_wasi_socket",
 ]
 
 [[package]]
@@ -1237,9 +1249,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.92"
+version = "1.0.93"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7434af0dc1cbd59268aa98b4c22c131c0584d2232f6fb166efb993e2832e896a"
+checksum = "cad406b69c91885b5107daf2c29572f6c8cdb3c66826821e286c533490c0bc76"
 dependencies = [
  "itoa",
  "ryu",
