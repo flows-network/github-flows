@@ -6,7 +6,7 @@ pub use octocrab::models::events::Event;
 use octocrab::Octocrab;
 use once_cell::sync::OnceCell;
 
-const GH_API_PREFIX: &str = "http://github-flows.vercel.app/api";
+const GH_API_PREFIX: &str = "http://github-flows.vercel.app/api/proxy";
 
 extern "C" {
     // Flag if current running is for listening(1) or message receving(0)
