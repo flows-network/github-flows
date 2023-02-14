@@ -6,7 +6,9 @@ pub use octocrab::models::events::Event;
 use octocrab::Octocrab;
 use once_cell::sync::OnceCell;
 
-const GH_API_PREFIX: &str = "http://github-flows.vercel.app/api/proxy";
+use std::future::Future;
+
+const GH_API_PREFIX: &str = "http://github-flows.vercel.app/api";
 
 extern "C" {
     // Flag if current running is for listening(1) or message receving(0)
@@ -23,26 +25,43 @@ extern "C" {
     fn set_error_log(p: *const u8, len: i32);
 }
 
-pub fn revoke_listeners() {
-    unsafe {
-        let mut flows_user = Vec::<u8>::with_capacity(100);
-        let c = get_flows_user(flows_user.as_mut_ptr());
-        flows_user.set_len(c as usize);
-        let flows_user = String::from_utf8(flows_user).unwrap();
+unsafe fn _get_flows_user() -> String {
+    let mut flows_user = Vec::<u8>::with_capacity(100);
+    let c = get_flows_user(flows_user.as_mut_ptr());
+    flows_user.set_len(c as usize);
+    String::from_utf8(flows_user).unwrap()
+}
 
-        let mut flow_id = Vec::<u8>::with_capacity(100);
-        let c = get_flow_id(flow_id.as_mut_ptr());
-        if c == 0 {
-            panic!("Failed to get flow id");
-        }
-        flow_id.set_len(c as usize);
-        let flow_id = String::from_utf8(flow_id).unwrap();
+unsafe fn _get_flow_id() -> String {
+    let mut flow_id = Vec::<u8>::with_capacity(100);
+    let c = get_flow_id(flow_id.as_mut_ptr());
+    if c == 0 {
+        panic!("Failed to get flow id");
+    }
+    flow_id.set_len(c as usize);
+    String::from_utf8(flow_id).unwrap()
+}
+
+pub fn revoke_listeners(owner: &str, repo: &str, events: Vec<&str>) {
+    unsafe {
+        let flows_user = _get_flows_user();
+        let flow_id = _get_flow_id();
 
         let mut writer = Vec::new();
-
-        // TODO: need params
         let res = request::get(
-            format!("{}/{}/{}/revoke", GH_API_PREFIX, flows_user, flow_id),
+            format!(
+                "{}/{}/{}/revoke?owner={}&repo={}&{}",
+                GH_API_PREFIX,
+                flows_user,
+                flow_id,
+                owner,
+                repo,
+                events
+                    .iter()
+                    .map(|e| format!("events={}", e))
+                    .collect::<Vec<String>>()
+                    .join("&")
+            ),
             &mut writer,
         )
         .unwrap();
@@ -56,31 +75,33 @@ pub fn revoke_listeners() {
     }
 }
 
-pub fn listen_to_event<F>(callback: F)
+pub async fn listen_to_event<F, Fut>(owner: &str, repo: &str, events: Vec<&str>, callback: F)
 where
-    F: Fn(Event),
+    F: FnOnce(Event) -> Fut,
+    Fut: Future<Output = ()>,
 {
     unsafe {
         match is_listening() {
             // Calling register
             1 => {
-                let mut flows_user = Vec::<u8>::with_capacity(100);
-                let c = get_flows_user(flows_user.as_mut_ptr());
-                flows_user.set_len(c as usize);
-                let flows_user = String::from_utf8(flows_user).unwrap();
-
-                let mut flow_id = Vec::<u8>::with_capacity(100);
-                let c = get_flow_id(flow_id.as_mut_ptr());
-                if c == 0 {
-                    panic!("Failed to get flow id");
-                }
-                flow_id.set_len(c as usize);
-                let flow_id = String::from_utf8(flow_id).unwrap();
+                let flows_user = _get_flows_user();
+                let flow_id = _get_flow_id();
 
                 let mut writer = Vec::new();
-                // TODO: need params
                 let res = request::get(
-                    format!("{}/{}/{}/listen", GH_API_PREFIX, flows_user, flow_id),
+                    format!(
+                        "{}/{}/{}/listen?owner={}&repo={}&{}",
+                        GH_API_PREFIX,
+                        flows_user,
+                        flow_id,
+                        owner,
+                        repo,
+                        events
+                            .iter()
+                            .map(|e| format!("events={}", e))
+                            .collect::<Vec<String>>()
+                            .join("&")
+                    ),
                     &mut writer,
                 )
                 .unwrap();
@@ -88,7 +109,7 @@ where
                 match res.status_code().is_success() {
                     true => {
                         if let Ok(event) = serde_json::from_slice::<Event>(&writer) {
-                            callback(event)
+                            callback(event).await;
                         }
                     }
                     false => {
@@ -98,7 +119,7 @@ where
             }
             _ => {
                 if let Some(event) = event_from_subcription() {
-                    callback(event)
+                    callback(event).await;
                 }
             }
         }

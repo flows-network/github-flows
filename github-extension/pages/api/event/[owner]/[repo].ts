@@ -11,6 +11,8 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
     try {
         let allFlows = await redis.hgetall(`${owner}/${repo}:ch:trigger`);
 
+        console.log(allFlows);
+
         if (allFlows) {
             let flowArray = [];
             for (let flows in allFlows) {

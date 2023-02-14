@@ -9,4 +9,4 @@ crate-type = ["cdylib"]
 
 [dependencies]
 github-flows = { path = "../github-sdk" }
-tokio = "1.25.0"
+tokio = { version = "1.25.0", features = ["macros", "rt"] }

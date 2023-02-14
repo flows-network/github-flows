@@ -12,6 +12,13 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(400).send("Bad request");
     }
 
+    let eventsRealList;
+    if (typeof events == "string") {
+        eventsRealList = [events];
+    } else {
+        eventsRealList = events;
+    }
+
     if (typeof flows_user != "string" || typeof flow_id != "string" || typeof owner != "string" || typeof repo != "string") {
         return res.status(400).send("Bad request");
     }
@@ -19,21 +26,19 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
     if (typeof flow_id == "string") {
         let flows_user_in = await redis.hget(`${owner}/${repo}:ch:trigger`, flow_id);
         if (!flows_user_in) {
-            await redis.hset(`${owner}/${repo}:ch:trigger`, { [flow_id]: flows_user });
+            await redis.hset(`${owner}/${repo}:ch:trigger`, {
+                [flow_id]: {
+                    flows_user: flows_user,
+                    events: eventsRealList,
+                }
+            });
         }
-    }
-
-    let eventsInParams;
-    if (typeof events == "string") {
-        eventsInParams = [events];
-    } else {
-        eventsInParams = events;
     }
 
     let param = {
         "name": "web",
         "active": true,
-        "events": eventsInParams,
+        "events": eventsRealList,
         "config": {
             "url": FLOW_API,
             "content_type": "form",

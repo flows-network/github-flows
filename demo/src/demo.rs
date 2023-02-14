@@ -3,7 +3,7 @@ use github_flows::{listen_to_event, get_octo, Event};
 #[no_mangle]
 #[tokio::main(flavor = "current_thread")]
 pub async fn run() {
-    listen_to_event(handler)
+    listen_to_event(handler).await
 }
 
 async fn handler(event: Event) {
