@@ -1,7 +1,9 @@
 use http_req::request;
 pub use octocrab;
 
-use octocrab::{models::events::Event, Octocrab};
+pub use octocrab::models::events::Event;
+
+use octocrab::Octocrab;
 use once_cell::sync::OnceCell;
 
 const GH_API_PREFIX: &str = "http://github-flows.vercel.app/api";
