@@ -1,0 +1,12 @@
+[package]
+name = "demo"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/demo.rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+github-flows = { path = "../github-sdk" }
+tokio = "1.25.0"
