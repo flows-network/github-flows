@@ -1,0 +1,13 @@
+[package]
+name = "github-wasi"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+crate-type = ["lib", "cdylib"]
+
+[dependencies]
+github-flows = { path = "../github-sdk" }
+http_req_wasi = "0.10.2"
+serde_json = "1.0.93"
