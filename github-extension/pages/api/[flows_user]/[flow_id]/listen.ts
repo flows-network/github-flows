@@ -48,7 +48,7 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
     let token = await redis.hget("auth", flows_user);
 
     if (!token) {
-        return res.status(400).send("`User has not been authorized, you need to [install the App](https://slack-flows.vercel.app/api/auth?%FLOWS_USER%) to GitHub \`${owner}\` first`");
+        return res.status(400).send(`User has not been authorized, you need to [install the App](https://slack-flows.vercel.app/api/auth?%FLOWS_USER%) to GitHub \`${owner}\` first`);
     }
 
     let result = await fetch(`https://api.github.com/repos/${owner}/${repo}/hooks`, {
@@ -69,3 +69,7 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
 }
 
 export default fn;
+
+export const config = {
+    runtime: 'experimental-edge',
+};

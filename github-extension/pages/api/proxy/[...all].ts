@@ -6,3 +6,7 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => httpProxyMiddlew
 });
 
 export default fn;
+
+export const config = {
+    runtime: 'experimental-edge',
+};

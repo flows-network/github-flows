@@ -927,6 +927,7 @@ dependencies = [
 [[package]]
 name = "octocrab"
 version = "0.18.1"
+source = "git+https://github.com/jetjinser/octocrab#d900eb65da076e08bf42dde5ef59f6e3bf203b2f"
 dependencies = [
  "arc-swap",
  "async-trait",
