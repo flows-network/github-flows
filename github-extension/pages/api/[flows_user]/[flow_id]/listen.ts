@@ -47,10 +47,14 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
 
     let token = await redis.hget("auth", flows_user);
 
+    if (!token) {
+        return res.status(400).send("`User has not been authorized, you need to [install the App](https://slack-flows.vercel.app/api/auth?%FLOWS_USER%) to GitHub \`${owner}\` first`");
+    }
+
     let result = await fetch(`https://api.github.com/repos/${owner}/${repo}/hooks`, {
         headers: {
             "Accept": "application/vnd.github.v3+json",
-            "User-Agent": "Github Extention of Second State flows.network",
+            "User-Agent": "GitHub Extention of Second State flows.network",
             "Authorization": `Bearer ${token}`
         },
         method: "post",
