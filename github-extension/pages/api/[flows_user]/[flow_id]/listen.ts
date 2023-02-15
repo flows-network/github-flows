@@ -45,7 +45,7 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
         }
     };
 
-    let token = await redis.hget("auth", flows_user);
+    let token = await redis.get(`${flows_user}:token`);
 
     if (!token) {
         return res.status(400).send(`User has not been authorized, you need to [install the App](https://github-flows.vercel.app/api/%FLOWS_USER%/access) to GitHub \`${owner}\` first`);
