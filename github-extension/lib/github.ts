@@ -1,10 +1,11 @@
+export const CLIENT_ID = process.env.GITHUB_CLIENT_ID;
+export const CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
+
 export async function getAuthedToken(code: string): Promise<string> {
-    const client_id = process.env.GITHUB_CLIENT_ID;
-    const client_secret = process.env.GITHUB_CLIENT_SECRET;
 
     const github_base = "https://github.com/login/oauth/access_token"
     let res = await fetch(
-        `${github_base}?client_id=${client_id}&client_secret=${client_secret}&code=${code}`,
+        `${github_base}?client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&code=${code}`,
         {
             headers: {
                 Accept: "application/json",

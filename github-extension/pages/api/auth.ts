@@ -3,18 +3,18 @@ import { redis } from '@/lib/upstash';
 import { getAuthedToken } from "@/lib/github";
 
 const fn = async (req: NextApiRequest, res: NextApiResponse) => {
-    const { flows_user, code } = req.query;
+    const { state, code } = req.query;
 
-    if (!flows_user || !code) {
+    if (!state || !code) {
         return res.status(400).send("Bad request");
     }
 
-    if (typeof flows_user != "string" || typeof code != "string") {
+    if (typeof state != "string" || typeof code != "string") {
         return res.status(400).send("Bad request");
     }
 
     try {
-        const d = await redis.hdel("token", flows_user);
+        const d = await redis.hdel("token", state);
         // Return if flow user not found in Redis
         if (d !== 1) {
             return res.status(400).send("Expired authorization");
@@ -27,7 +27,7 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
         const authedToken = await getAuthedToken(code);
 
         await redis.hset("token", {
-            [flows_user]: authedToken,
+            [state]: authedToken,
         });
 
         return res.redirect(process.env.FLOWS_NETWORK_APP_URL || "");
