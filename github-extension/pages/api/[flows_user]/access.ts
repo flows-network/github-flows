@@ -3,7 +3,6 @@ import { redis } from '@/lib/upstash';
 import { CLIENT_ID } from "@/lib/github";
 
 const fn = async (req: NextApiRequest, res: NextApiResponse) => {
-    // flow_id actually
     const { flows_user } = req.query;
 
     if (!flows_user) {
