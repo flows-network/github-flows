@@ -14,6 +14,10 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
             "User-Agent": "GitHub Extention of Second State flows.network",
             "Authorization": `Bearer ${token}`
         },
+        pathRewrite: [{
+            patternStr: `^/api/${flows_user}/proxy`,
+            replaceStr: "",
+        }]
     })
 };
 
