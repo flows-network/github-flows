@@ -1,6 +1,4 @@
-use github_flows::{
-    get_octo, listen_to_event, octocrab::models::events::payload::EventPayload,
-};
+use github_flows::{get_octo, listen_to_event, octocrab::models::events::payload::EventPayload};
 use slack_flows::send_message_to_channel;
 
 #[no_mangle]
@@ -10,8 +8,6 @@ pub async fn run() {
 }
 
 async fn handler(payload: EventPayload) {
-    send_message_to_channel("ham-5b68442", "general", "test".to_string());
-
     let body = if let EventPayload::IssueCommentEvent(e) = payload {
         e.comment
             .body
@@ -22,8 +18,16 @@ async fn handler(payload: EventPayload) {
 
     let octo = get_octo();
 
-    octo.issues("jetjinser", "github-flows")
+    let comment = octo
+        .issues("jetjinser", "github-flows")
         .create_comment(1, format!("Ciao~!\nYou just comment:\n{}", body).as_str())
         .await
         .unwrap();
+
+    send_message_to_channel("ham-5b68442", "general", body);
+    send_message_to_channel(
+        "ham-5b68442",
+        "general",
+        comment.body.unwrap_or("no-body".to_string()),
+    );
 }
