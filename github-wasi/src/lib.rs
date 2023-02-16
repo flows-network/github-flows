@@ -1,7 +1,8 @@
 use github_flows::Event;
 use http_req::request;
 
-const GH_API_PREFIX: &str = "https://github-flows.vercel.app/api";
+// const GH_API_PREFIX: &str = "https://github-flows.vercel.app/api";
+const GH_API_PREFIX: &str = "http://35.88.34.250:6670/api";
 
 extern "C" {
     fn get_event_body_length() -> i32;
