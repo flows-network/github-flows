@@ -8,20 +8,24 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(400).send("Bad request");
     }
 
+    if (typeof events != "string") {
+        return res.status(400).send("Bad request");
+    }
+
     try {
         let allFlows = await redis.hgetall(`github:${owner}/${repo}:trigger`);
 
-        // console.log(allFlows);
-
         if (allFlows) {
-            let flowArray: string[] = [];
-            // for (let flows in allFlows) {
-            //     let user: any = allFlows[flows];
-            //     flowArray.push({
-            //         flows_user: user,
-            //         flow_id: flows,
-            //     });
-            // }
+            let flowArray = [];
+            for (let flows in allFlows) {
+                let t: any = allFlows[flows];
+                if (events in t.events) {
+                    flowArray.push({
+                        flows_user: t.user,
+                        flow_id: flows,
+                    });
+                }
+            }
 
             return res.status(200).json(flowArray);
         } else {
