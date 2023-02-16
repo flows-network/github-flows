@@ -18,7 +18,7 @@ pub unsafe fn message() {
         let headers = headers_from_subcription().unwrap_or_default();
         let event_name = headers
             .into_iter()
-            .find(|header| header.0 == "X-GitHub-Event")
+            .find(|header| header.0.to_ascii_lowercase() == "x-github-event") // X-GitHub-Event
             .unwrap_or((String::new(), String::new()))
             .1;
 
