@@ -1,9 +1,7 @@
 use http_req::request;
 pub use octocrab;
 
-pub use octocrab::models::events::Event;
-
-use octocrab::Octocrab;
+use octocrab::{models::events::payload::EventPayload, Octocrab};
 use once_cell::sync::OnceCell;
 
 use std::future::Future;
@@ -78,7 +76,7 @@ pub fn revoke_listeners(owner: &str, repo: &str, events: Vec<&str>) {
 
 pub async fn listen_to_event<F, Fut>(owner: &str, repo: &str, events: Vec<&str>, callback: F)
 where
-    F: FnOnce(Event) -> Fut,
+    F: FnOnce(EventPayload) -> Fut,
     Fut: Future<Output = ()>,
 {
     unsafe {
@@ -109,7 +107,7 @@ where
 
                 match res.status_code().is_success() {
                     true => {
-                        if let Ok(event) = serde_json::from_slice::<Event>(&writer) {
+                        if let Ok(event) = serde_json::from_slice::<EventPayload>(&writer) {
                             callback(event).await;
                         }
                     }
@@ -139,14 +137,14 @@ pub fn get_octo() -> &'static Octocrab {
     })
 }
 
-fn event_from_subcription() -> Option<Event> {
+fn event_from_subcription() -> Option<EventPayload> {
     unsafe {
         let l = get_event_body_length();
         let mut event_body = Vec::<u8>::with_capacity(l as usize);
         let c = get_event_body(event_body.as_mut_ptr());
         assert!(c == l);
         event_body.set_len(c as usize);
-        match serde_json::from_slice::<Event>(&event_body) {
+        match serde_json::from_slice(&event_body) {
             Ok(e) => Some(e),
             Err(_) => None,
         }

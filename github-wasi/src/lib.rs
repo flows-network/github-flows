@@ -1,5 +1,5 @@
-use github_flows::Event;
 use http_req::request;
+use serde_json::Value;
 
 // const GH_API_PREFIX: &str = "https://github-flows.vercel.app/api";
 const GH_API_PREFIX: &str = "http://35.88.34.250:6670/api";
@@ -26,7 +26,9 @@ pub unsafe fn message() {
         let res = request::get(
             format!(
                 "{}/event/{}?events={:?}",
-                GH_API_PREFIX, e.repo.name, event_name
+                GH_API_PREFIX,
+                e["repository"]["full_name"].as_str().unwrap(),
+                event_name
             ),
             &mut writer,
         )
@@ -40,7 +42,8 @@ pub unsafe fn message() {
     }
 }
 
-fn event_from_subcription() -> Option<Event> {
+// -> Option<EventPayload>
+fn event_from_subcription() -> Option<Value> {
     unsafe {
         let l = get_event_body_length();
         let mut event_body = Vec::<u8>::with_capacity(l as usize);
