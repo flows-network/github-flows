@@ -1,7 +1,7 @@
 export const CLIENT_ID = process.env.GITHUB_CLIENT_ID;
 export const CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
 
-export const EX_API = "https://github-flows.vercel.app/api";
+export const EX_API = "http://35.88.34.250:6670/api";
 
 export async function getAuthedInstallation(code: string): Promise<{
     access_token: string,
