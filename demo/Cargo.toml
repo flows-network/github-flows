@@ -9,4 +9,5 @@ crate-type = ["cdylib"]
 
 [dependencies]
 github-flows = { path = "../github-sdk" }
+slack-flows = "0.2.5"
 tokio = { version = "1.25.0", features = ["macros", "rt"] }

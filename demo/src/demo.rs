@@ -1,6 +1,7 @@
 use github_flows::{
     get_octo, listen_to_event, octocrab::models::events::payload::EventPayload, Event,
 };
+use slack_flows::send_message_to_channel;
 
 #[no_mangle]
 #[tokio::main(flavor = "current_thread")]
@@ -9,6 +10,8 @@ pub async fn run() {
 }
 
 async fn handler(event: Event) {
+    send_message_to_channel("ham-5b68442", "general", "test".to_string());
+
     let body = if let Some(EventPayload::IssueCommentEvent(e)) = event.payload {
         e.comment
             .body
