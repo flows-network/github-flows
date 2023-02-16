@@ -19,9 +19,9 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
             let flowArray = [];
             for (let flows in allFlows) {
                 let t: any = allFlows[flows];
-                if (events in t.events) {
+                if (t.events.includes(events)) {
                     flowArray.push({
-                        flows_user: t.user,
+                        flows_user: t.flows_user,
                         flow_id: flows,
                     });
                 }
