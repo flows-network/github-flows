@@ -1,5 +1,5 @@
 use github_flows::{
-    get_octo, listen_to_event, octocrab::models::events::payload::EventPayload, Event,
+    get_octo, listen_to_event, octocrab::models::events::payload::EventPayload,
 };
 use slack_flows::send_message_to_channel;
 
@@ -9,10 +9,10 @@ pub async fn run() {
     listen_to_event("jetjinser", "github-flows", vec!["issue_comment"], handler).await;
 }
 
-async fn handler(event: Event) {
+async fn handler(payload: EventPayload) {
     send_message_to_channel("ham-5b68442", "general", "test".to_string());
 
-    let body = if let Some(EventPayload::IssueCommentEvent(e)) = event.payload {
+    let body = if let EventPayload::IssueCommentEvent(e) = payload {
         e.comment
             .body
             .unwrap_or("oops, there is no comment body".to_string())
