@@ -25,7 +25,7 @@ pub unsafe fn message() {
         let mut writer = Vec::new();
         let res = request::get(
             format!(
-                "{}/event/{}?events={:?}",
+                "{}/event/{}?events={}",
                 GH_API_PREFIX,
                 e["repository"]["full_name"].as_str().unwrap(),
                 event_name
