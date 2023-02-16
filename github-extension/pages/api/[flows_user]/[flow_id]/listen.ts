@@ -36,16 +36,6 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
         }
     }
 
-    let param = {
-        "name": "web",
-        "active": true,
-        "events": eventsRealList,
-        "config": {
-            "url": FLOW_API,
-            "content_type": "form",
-        }
-    };
-
     let token = await redis.get(`github:${flows_user}:token`);
 
     if (!token) {
@@ -54,6 +44,16 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
             + `[install the App](${EX_API}/%FLOWS_USER%/access) to GitHub \`${owner}\` first`
         );
     }
+
+    let param = {
+        "name": "web",
+        "active": true,
+        "events": eventsRealList,
+        "config": {
+            "url": FLOW_API,
+            "content_type": "json",
+        }
+    };
 
     let result = await fetch(`https://api.github.com/repos/${owner}/${repo}/hooks`, {
         headers: {
