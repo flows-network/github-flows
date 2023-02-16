@@ -9,7 +9,7 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     try {
-        let allFlows = await redis.hgetall(`${owner}/${repo}:ch:trigger`);
+        let allFlows = await redis.hgetall(`github:${owner}/${repo}:trigger`);
 
         // console.log(allFlows);
 

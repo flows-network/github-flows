@@ -15,7 +15,7 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     try {
-        const d = await redis.del(state);
+        const d = await redis.del(`github:${state}`);
         // Return if flow user not found in Redis
         if (d !== 1) {
             return res.status(400).send("Expired authorization");
@@ -29,8 +29,8 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
 
         const pipeline = redis.pipeline();
         // github extention works because flows.network username == github username
-        pipeline.set(`${state}:token`, authedIns.access_token);
-        pipeline.set(state, true);
+        pipeline.set(`github:${state}:token`, authedIns.access_token);
+        pipeline.set(`github:${state}`, true);
         await pipeline.exec();
 
         return res.redirect(process.env.FLOWS_NETWORK_APP_URL || "");

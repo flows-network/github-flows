@@ -5,7 +5,7 @@ import httpProxyMiddleware from "next-http-proxy-middleware";
 const fn = async (req: NextApiRequest, res: NextApiResponse) => {
     let { flows_user } = req.query;
 
-    let token = await redis.get(`${flows_user}:token`);
+    let token = await redis.get(`github:${flows_user}:token`);
 
     return httpProxyMiddleware(req, res, {
         target: "https://api.github.com",

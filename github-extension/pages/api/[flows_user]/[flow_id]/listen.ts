@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next"
 import { redis } from "@/lib/upstash";
 
 import issueCommentEvent from "resources/issue_comment_event.json";
+import { EX_API } from "@/lib/github";
 
 const FLOW_API = "https://code.flows.network/hook/github/message";
 
@@ -24,9 +25,9 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     if (typeof flow_id == "string") {
-        let flows_user_in = await redis.hget(`${owner}/${repo}:ch:trigger`, flow_id);
+        let flows_user_in = await redis.hget(`github:${owner}/${repo}:trigger`, flow_id);
         if (!flows_user_in) {
-            await redis.hset(`${owner}/${repo}:ch:trigger`, {
+            await redis.hset(`github:${owner}/${repo}:trigger`, {
                 [flow_id]: {
                     flows_user: flows_user,
                     events: eventsRealList,
@@ -45,10 +46,13 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
         }
     };
 
-    let token = await redis.get(`${flows_user}:token`);
+    let token = await redis.get(`github:${flows_user}:token`);
 
     if (!token) {
-        return res.status(400).send(`User has not been authorized, you need to [install the App](https://github-flows.vercel.app/api/%FLOWS_USER%/access) to GitHub \`${owner}\` first`);
+        return res.status(400).send(
+            "User has not been authorized, you need to "
+            + `[install the App](${EX_API}/%FLOWS_USER%/access) to GitHub \`${owner}\` first`
+        );
     }
 
     let result = await fetch(`https://api.github.com/repos/${owner}/${repo}/hooks`, {

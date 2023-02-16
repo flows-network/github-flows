@@ -12,7 +12,7 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(400).send("Bad request");
     }
 
-    let tb = `${owner}/${repo}:ch:trigger`;
+    let tb = `github:${owner}/${repo}:trigger`;
 
     let fae: {
         flows_user: string,

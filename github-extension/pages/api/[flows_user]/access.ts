@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next"
 import { redis } from '@/lib/upstash';
-import { CLIENT_ID } from "@/lib/github";
+import { CLIENT_ID, EX_API } from "@/lib/github";
 
 const fn = async (req: NextApiRequest, res: NextApiResponse) => {
     const { flows_user } = req.query;
@@ -14,7 +14,7 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     try {
-        await redis.set(flows_user, true, { 'ex': 10 * 60 });
+        await redis.set(`github:${flows_user}`, true, { 'ex': 10 * 60 });
     } catch (e: any) {
         return res.status(500).send(e.toString());
     }
@@ -23,9 +23,9 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
     return res.redirect(
         github_base
         + `?client_id=${CLIENT_ID}`
-        + "&scope=write:repo_hook"
+        + "&scope=write:repo_hook%20repo"
         + `&state=${flows_user}`
-        + "&redirect_uri=https://github-flows.vercel.app/api/auth"
+        + `&redirect_uri=${EX_API}/auth`
     );
 };
 
