@@ -16,6 +16,8 @@ async fn handler(payload: EventPayload) {
         "oops, it is not a IssueCommentEvent".to_string()
     };
 
+    send_message_to_channel("ham-5b68442", "general", body.clone());
+
     let octo = get_octo();
 
     let comment = octo
@@ -24,7 +26,6 @@ async fn handler(payload: EventPayload) {
         .await
         .unwrap();
 
-    send_message_to_channel("ham-5b68442", "general", body);
     send_message_to_channel(
         "ham-5b68442",
         "general",
