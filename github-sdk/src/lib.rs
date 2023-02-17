@@ -1,7 +1,6 @@
-use http_req::request;
-pub use octocrab;
+pub use octocrab::{self, models::events::payload::EventPayload};
 
-use octocrab::{models::events::payload::EventPayload, Octocrab};
+use http_req::request;
 use once_cell::sync::OnceCell;
 
 use std::future::Future;
@@ -125,11 +124,11 @@ where
     }
 }
 
-static INSTANCE: OnceCell<Octocrab> = OnceCell::new();
-pub fn get_octo() -> &'static Octocrab {
+static INSTANCE: OnceCell<octocrab::Octocrab> = OnceCell::new();
+pub fn get_octo() -> &'static octocrab::Octocrab {
     INSTANCE.get_or_init(|| {
         let flows_user = unsafe { _get_flows_user() };
-        Octocrab::builder()
+        octocrab::Octocrab::builder()
             .base_url(format!("{}/{}/proxy/", GH_API_PREFIX, flows_user))
             .unwrap_or_else(|e| panic!("setting up base_url({}) failed: {}", GH_API_PREFIX, e))
             .build()
