@@ -1,3 +1,53 @@
+//! GitHub integration for [Flows.network](https://test.flows.network)
+//!
+//! # Quick Start
+//!
+//! ```rust
+//! use github_flows::{
+//!     get_octo, listen_to_event,
+//!     octocrab::models::{events::payload::EventPayload, reactions::ReactionContent},
+//! };
+//!
+//! #[no_mangle]
+//! #[tokio::main(flavor = "current_thread")]
+//! pub async fn run() {
+//!     listen_to_event("some_owner", "some_repo", vec!["issue_comment"], handler).await;
+//! }
+//!
+//! async fn handler(payload: EventPayload) {
+//!     if let EventPayload::IssueCommentEvent(e) = payload {
+//!         let issue_number = e.comment.id.0;
+//!
+//!         let octo = get_octo();
+//!
+//!         let _reaction = octo
+//!             .issues("jetjinser", "github-flows")
+//!             .create_reaction(issue_number, ReactionContent::Rocket)
+//!             .await
+//!             .unwrap();
+//!     };
+//! }
+//! ```
+//!
+//! > Note that the tokio used here is
+//! > [tokio_wasi](https://docs.rs/tokio_wasi/latest/tokio/)
+//! > with `full` features
+//!
+//! > ```toml
+//! > ...
+//! > [dependencies]
+//! > github-flows = "0.1.0"
+//! > tokio_wasi = { version = "1.25.1", features = ["full"] }
+//! > ...
+//! > ```
+//!
+//! [listen_to_event()] is responsible for registering a listener for
+//! channel `some_owner` of workspace `some_repo`. When a new `issue_number` Event
+//! coming, the callback `handler` is called with received
+//! `EventPayload` then [get_octo()] is used to get a
+//! [Octocrab](https://docs.rs/octocrab/latest/octocrab/struct.Octocrab.html)
+//! Instance to call GitHub api
+
 pub use octocrab::{self, models::events::payload::EventPayload};
 
 use http_req::request;
@@ -40,6 +90,12 @@ unsafe fn _get_flow_id() -> String {
     String::from_utf8(flow_id).unwrap()
 }
 
+/// Revoke previous registered listener of current flow.
+///
+/// Most of the time you do not need to call this function. As inside
+/// the [listen_to_event()] it will revoke previous registered
+/// listener, so the only circumstance you need this function is when
+/// you want to change the listener from GitHub to others.
 pub fn revoke_listeners(owner: &str, repo: &str, events: Vec<&str>) {
     unsafe {
         let flows_user = _get_flows_user();
@@ -73,6 +129,17 @@ pub fn revoke_listeners(owner: &str, repo: &str, events: Vec<&str>) {
     }
 }
 
+#[allow(rustdoc::bare_urls)]
+/// Create a listener for *https://github.com/`owner`/`repo`*.
+///
+/// If you have not install
+/// [Flows.network platform](https://test.flows.network)'s app to your GitHub,
+/// you will receive an error in the flow's building log or running log.
+///
+/// Before creating the listener, this function will revoke previous
+/// registered listener of current flow so you don't need to do it manually.
+///
+/// `callback` is a callback function which will be called when new `Event` is received.
 pub async fn listen_to_event<F, Fut>(owner: &str, repo: &str, events: Vec<&str>, callback: F)
 where
     F: FnOnce(EventPayload) -> Fut,
@@ -125,6 +192,8 @@ where
 }
 
 static INSTANCE: OnceCell<octocrab::Octocrab> = OnceCell::new();
+
+/// Get a Octocrab Instance with GitHub Extension base_url
 pub fn get_octo() -> &'static octocrab::Octocrab {
     INSTANCE.get_or_init(|| {
         let flows_user = unsafe { _get_flows_user() };

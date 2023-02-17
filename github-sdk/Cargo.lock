@@ -464,7 +464,7 @@ name = "github-flows"
 version = "0.1.0"
 dependencies = [
  "http_req_wasi",
- "octocrab",
+ "octocrab_wasi",
  "once_cell",
  "reqwest_wasi",
  "serde_json",
@@ -917,9 +917,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "octocrab"
-version = "0.18.1"
-source = "git+https://github.com/jetjinser/octocrab#d900eb65da076e08bf42dde5ef59f6e3bf203b2f"
+name = "octocrab_wasi"
+version = "0.18.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2ae64af79f133e377a7e2e7342b78b411b32d3bb0f65072632a17b72e1ee4aaf"
 dependencies = [
  "arc-swap",
  "async-trait",
