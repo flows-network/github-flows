@@ -130,7 +130,7 @@ pub fn get_octo() -> &'static Octocrab {
     INSTANCE.get_or_init(|| {
         let flows_user = unsafe { _get_flows_user() };
         Octocrab::builder()
-            .base_url(format!("{}/{}/proxy", GH_API_PREFIX, flows_user))
+            .base_url(format!("{}/{}/proxy/", GH_API_PREFIX, flows_user))
             .unwrap_or_else(|e| panic!("setting up base_url({}) failed: {}", GH_API_PREFIX, e))
             .build()
             .expect("Octocrab build failed")
