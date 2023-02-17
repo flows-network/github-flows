@@ -1,4 +1,7 @@
-use github_flows::{get_octo, listen_to_event, octocrab::models::events::payload::EventPayload};
+use github_flows::{
+    get_octo, listen_to_event,
+    octocrab::models::{events::payload::EventPayload, reactions::ReactionContent},
+};
 use slack_flows::send_message_to_channel;
 
 #[no_mangle]
@@ -20,12 +23,12 @@ async fn handler(payload: EventPayload) {
 
     let octo = get_octo();
 
-    let comment = octo
+    let reaction = octo
         .issues("jetjinser", "github-flows")
-        .create_comment(1, format!("Ciao~!\nYou just comment:\n{}", body).as_str())
+        .create_reaction(1, ReactionContent::Rocket)
         .await;
 
-    match comment {
+    match reaction {
         Ok(c) => send_message_to_channel("ham-5b68442", "general", c.created_at.to_rfc2822()),
         Err(e) => send_message_to_channel("ham-5b68442", "general", e.to_string()),
     }
