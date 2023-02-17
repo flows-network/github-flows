@@ -11,25 +11,19 @@ pub async fn run() {
 }
 
 async fn handler(payload: EventPayload) {
-    let body = if let EventPayload::IssueCommentEvent(e) = payload {
-        e.comment
-            .body
-            .unwrap_or("oops, there is no comment body".to_string())
-    } else {
-        "oops, it is not a IssueCommentEvent".to_string()
+    if let EventPayload::IssueCommentEvent(e) = payload {
+        let issue_number = e.comment.id.0;
+
+        let octo = get_octo();
+
+        let reaction = octo
+            .issues("jetjinser", "github-flows")
+            .create_reaction(issue_number, ReactionContent::Rocket)
+            .await;
+
+        match reaction {
+            Ok(c) => send_message_to_channel("ham-5b68442", "general", c.created_at.to_rfc2822()),
+            Err(e) => send_message_to_channel("ham-5b68442", "general", e.to_string()),
+        }
     };
-
-    send_message_to_channel("ham-5b68442", "general", body.clone());
-
-    let octo = get_octo();
-
-    let reaction = octo
-        .issues("jetjinser", "github-flows")
-        .create_reaction(1, ReactionContent::Rocket)
-        .await;
-
-    match reaction {
-        Ok(c) => send_message_to_channel("ham-5b68442", "general", c.created_at.to_rfc2822()),
-        Err(e) => send_message_to_channel("ham-5b68442", "general", e.to_string()),
-    }
 }

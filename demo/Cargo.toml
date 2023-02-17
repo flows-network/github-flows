@@ -8,6 +8,6 @@ path = "src/demo.rs"
 crate-type = ["cdylib"]
 
 [dependencies]
-github-flows = { path = "../github-sdk" }
+github-flows = "0.1.0"
 slack-flows = "0.2.5"
 tokio_wasi = { version = "1.25.1", features = ["full"] }
