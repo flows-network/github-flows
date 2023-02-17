@@ -12,13 +12,13 @@ pub async fn run() {
 
 async fn handler(payload: EventPayload) {
     if let EventPayload::IssueCommentEvent(e) = payload {
-        let issue_number = e.comment.id.0;
+        let comment_id = e.comment.id.0;
 
         let octo = get_octo();
 
         let reaction = octo
             .issues("jetjinser", "github-flows")
-            .create_reaction(issue_number, ReactionContent::Rocket)
+            .create_comment_reaction(comment_id, ReactionContent::Rocket)
             .await;
 
         match reaction {
