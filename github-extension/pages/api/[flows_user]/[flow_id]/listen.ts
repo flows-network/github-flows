@@ -41,7 +41,7 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
     if (!token) {
         return res.status(400).send(
             "User has not been authorized, you need to "
-            + `[install the App](${EX_API}/%FLOWS_USER%/access) to GitHub \`${owner}\` first`
+            + `[install the App](${EX_API}/%FLOWS_USER%/auth) to GitHub \`${owner}\` first`
         );
     }
 
