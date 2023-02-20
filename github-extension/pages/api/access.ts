@@ -1,42 +1,28 @@
 import type { NextApiRequest, NextApiResponse } from "next"
-import { redis } from '@/lib/upstash';
-import { getAuthedInstallation } from "@/lib/github";
+import httpProxyMiddleware from "next-http-proxy-middleware";
 
 const fn = async (req: NextApiRequest, res: NextApiResponse) => {
-    // state: flows_user
-    const { state, code } = req.query;
+    let body = req.body;
 
-    if (!state || !code) {
-        return res.status(400).send("Bad request");
-    }
-
-    if (typeof state != "string" || typeof code != "string") {
-        return res.status(400).send("Bad request");
-    }
-
-    try {
-        const d = await redis.del(`github:${state}`);
-        // Return if flow user not found in Redis
-        if (d !== 1) {
-            return res.status(400).send("Expired authorization");
+    if (body["installation"]) {
+        let action = body["action"];
+        if (action == "created") {
+            console.log("saved installation id");
+            console.log(body["installation"]["access_tokens_url"])
+        } else if (action == "deleted") {
+            console.log("deleted installation id");
+            console.log(body["installation"]["access_tokens_url"])
         }
-    } catch (e: any) {
-        return res.status(500).send(e.toString());
     }
 
-    try {
-        const authedIns = await getAuthedInstallation(code);
-
-        const pipeline = redis.pipeline();
-        // github extention works because flows.network username == github username
-        pipeline.set(`github:${state}:token`, authedIns.access_token);
-        pipeline.set(`github:${state}`, true);
-        await pipeline.exec();
-
-        return res.redirect(process.env.FLOWS_NETWORK_APP_URL || "");
-    } catch (e: any) {
-        return res.status(500).send(e.toString());
-    }
+    return httpProxyMiddleware(req, res, {
+        // target: "https://code.flows.network/hook/github/message",
+        target: "https://httpbin.org/anything",
+        pathRewrite: [{
+            patternStr: `^/api/access`,
+            replaceStr: "",
+        }]
+    })
 };
 
 export default fn;
