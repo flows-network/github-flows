@@ -34,10 +34,12 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
 
         let resp = await fetch(token_api, {
             headers: {
+                "Content-Type": "application/json",
                 "Accept": "application/vnd.github.v3+json",
                 "User-Agent": "GitHub Extention of Second State flows.network",
                 "Authorization": `Bearer ${token}`
-            }
+            },
+            method: "POST",
         });
 
         let ins_json = await resp.json();
