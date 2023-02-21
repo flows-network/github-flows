@@ -7,7 +7,16 @@ import { APP_ID, PRIVATE_KEY } from "@/lib/github";
 
 const fn = async (req: NextApiRequest, res: NextApiResponse) => {
     // flows_user: github login
-    let { flows_user } = req.query;
+    let { flows_user, login } = req.query;
+
+    if (!flows_user || !login) {
+        return res.status(400).send("Bad request");
+    }
+
+    let ins_id = await redis.get(`github:${login}:${flows_user}:installation`);
+    if (!ins_id) {
+        return res.status(401);
+    }
 
     let ins_token: string | null = await redis.get(`github:${flows_user}:ins_token`);
 
@@ -20,7 +29,6 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
             iss: APP_ID,
         }, PRIVATE_KEY, { algorithm: "RS256" });
 
-        let ins_id = await redis.get(`github:${flows_user}:installation`);
         let token_api = `https://api.github.com/app/installations/${ins_id}/access_tokens`;
 
         let resp = await fetch(token_api, {
@@ -52,7 +60,7 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
             "Authorization": `Bearer ${ins_token}`
         },
         pathRewrite: [{
-            patternStr: `^/api/${flows_user}/proxy`,
+            patternStr: `^/api/${flows_user}/${login}/proxy`,
             replaceStr: "",
         }]
     })

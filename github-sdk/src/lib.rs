@@ -196,9 +196,10 @@ static INSTANCE: OnceCell<octocrab::Octocrab> = OnceCell::new();
 /// Get a Octocrab Instance with GitHub Extension base_url
 pub fn get_octo(login: Option<String>) -> &'static octocrab::Octocrab {
     INSTANCE.get_or_init(|| {
-        let login = login.unwrap_or_else(|| unsafe { _get_flows_user() });
+        let flows_user = unsafe { _get_flows_user() };
+        let login = login.unwrap_or(flows_user.clone());
         octocrab::Octocrab::builder()
-            .base_url(format!("{}/{}/proxy/", GH_API_PREFIX, login))
+            .base_url(format!("{}/{}/{}/proxy/", GH_API_PREFIX, flows_user, login))
             .unwrap_or_else(|e| panic!("setting up base_url({}) failed: {}", GH_API_PREFIX, e))
             .build()
             .expect("Octocrab build failed")

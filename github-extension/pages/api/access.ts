@@ -9,12 +9,13 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
     if (installation) {
         let action = body["action"];
         let login = installation["account"]["login"];
+        let sender = body["sender"]["login"];
 
         if (action == "created") {
             let id = installation["id"]
-            await redis.set(`github:${login}:installations`, id);
+            await redis.set(`github:${sender}:${login}:installations`, id);
         } else if (action == "deleted") {
-            await redis.del(`github:${login}:installations`);
+            await redis.del(`github:${sender}:${login}:installations`);
         }
     }
 
