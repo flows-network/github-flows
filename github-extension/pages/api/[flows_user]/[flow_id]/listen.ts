@@ -2,9 +2,6 @@ import type { NextApiRequest, NextApiResponse } from "next"
 import { redis } from "@/lib/upstash";
 
 import issueCommentEvent from "resources/issue_comment_event.json";
-import { EX_API } from "@/lib/github";
-
-const FLOW_API = "https://code.flows.network/hook/github/message";
 
 const fn = async (req: NextApiRequest, res: NextApiResponse) => {
     const { flows_user, flow_id, owner, repo, events } = req.query;
@@ -36,40 +33,15 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
         }
     }
 
-    let token = await redis.get(`github:${flows_user}:token`);
-
+    let token = await redis.get(`github:${owner}:ins_token`);
     if (!token) {
         return res.status(400).send(
             "User has not been authorized, you need to "
-            + `[install the App](${EX_API}/%FLOWS_USER%/auth) to GitHub \`${owner}\` first`
+            + `[install the App](https://github.com/apps/flows-network-js/installations/new) to GitHub \`${owner}\` first`
         );
     }
 
-    let param = {
-        "name": "web",
-        "active": true,
-        "events": eventsRealList,
-        "config": {
-            "url": FLOW_API,
-            "content_type": "json",
-        }
-    };
-
-    let result = await fetch(`https://api.github.com/repos/${owner}/${repo}/hooks`, {
-        headers: {
-            "Accept": "application/vnd.github.v3+json",
-            "User-Agent": "GitHub Extention of Second State flows.network",
-            "Authorization": `Bearer ${token}`
-        },
-        method: "post",
-        body: JSON.stringify(param),
-    });
-
-    if (result.status == 200) {
-        return res.status(200).json(issueCommentEvent);
-    } else {
-        return res.status(500).json(result.json);
-    }
+    return res.status(200).json(issueCommentEvent);
 }
 
 export default fn;

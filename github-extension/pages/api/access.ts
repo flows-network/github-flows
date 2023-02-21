@@ -8,26 +8,18 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
     let installation = body["installation"];
     if (installation) {
         let action = body["action"];
-        if (action == "created") {
-            // TODO: not sure for every kind of installation.
-            let nodeId = installation["account"]["node_id"];
+        let login = installation["account"]["login"];
 
-            // TODO: update on already exits.
-            await redis.hset("github:installations", {
-                [nodeId]: [
-                    installation["id"]
-                ],
-            })
-            // TODO: is it work?...
+        if (action == "created") {
+            let id = installation["id"]
+            await redis.set(`github:${login}:installations`, id);
         } else if (action == "deleted") {
-            // TODO: delete installation token.
+            await redis.del(`github:${login}:installations`);
         }
     }
 
     return httpProxyMiddleware(req, res, {
-        // TODO:
-        // target: "https://code.flows.network/hook/github/message",
-        target: "https://httpbin.org/anything",
+        target: "https://code.flows.network/hook/github/message",
         pathRewrite: [{
             patternStr: `^/api/access`,
             replaceStr: "",
