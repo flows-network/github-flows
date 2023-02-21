@@ -11,6 +11,14 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(400).send("Bad request");
     }
 
+    let token = await redis.get(`github:${owner}:ins_token`);
+    if (!token) {
+        return res.status(400).send(
+            "User has not been authorized, you need to "
+            + `[install the App](https://github.com/apps/${APP_NAME}/installations/new) to GitHub \`${owner}\` first`
+        );
+    }
+
     let eventsRealList;
     if (typeof events == "string") {
         eventsRealList = [events];
@@ -32,14 +40,6 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
                 }
             });
         }
-    }
-
-    let token = await redis.get(`github:${owner}:ins_token`);
-    if (!token) {
-        return res.status(400).send(
-            "User has not been authorized, you need to "
-            + `[install the App](https://github.com/apps/${APP_NAME}/installations/new) to GitHub \`${owner}\` first`
-        );
     }
 
     return res.status(200).json(issueCommentEvent);
