@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next"
 import { redis } from "@/lib/upstash";
 
 import issueCommentEvent from "resources/issue_comment_event.json";
+import { APP_NAME } from "@/lib/github";
 
 const fn = async (req: NextApiRequest, res: NextApiResponse) => {
     const { flows_user, flow_id, owner, repo, events } = req.query;
@@ -37,7 +38,7 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
     if (!token) {
         return res.status(400).send(
             "User has not been authorized, you need to "
-            + `[install the App](https://github.com/apps/flows-network-js/installations/new) to GitHub \`${owner}\` first`
+            + `[install the App](https://github.com/apps/${APP_NAME}/installations/new) to GitHub \`${owner}\` first`
         );
     }
 
