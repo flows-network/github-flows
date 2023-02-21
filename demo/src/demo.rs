@@ -14,7 +14,7 @@ async fn handler(payload: EventPayload) {
     if let EventPayload::IssueCommentEvent(e) = payload {
         let comment_id = e.comment.id.0;
 
-        let octo = get_octo();
+        let octo = get_octo(Some(String::from("jetjinser")));
 
         let reaction = octo
             .issues("jetjinser", "github-flows")
