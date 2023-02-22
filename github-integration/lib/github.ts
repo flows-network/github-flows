@@ -43,7 +43,7 @@ export async function get_ins_token(flows_user: string, ins_id: string): Promise
         let expiresAt = ins_json["expires_at"];
         let e = new Date(expiresAt);
 
-        await redis.set(`github:${flows_user}:ins_token`, ins_token, { exat: e.getTime() - (30 * 1000) });
+        await redis.set(`github:${flows_user}:ins_token`, ins_token, { pxat: e.getTime() - (30 * 1000) });
     }
 
     return ins_token;
