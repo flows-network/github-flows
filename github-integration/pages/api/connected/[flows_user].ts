@@ -26,7 +26,7 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
                     return res.status(500).send("no token");
                 }
 
-                let api = "https://api.github.com/user/installations";
+                let api = "https://api.github.com/installation/repositories";
 
                 let resp = await fetch(api, {
                     headers: {
@@ -39,23 +39,30 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
 
 
                 let json = await resp.json();
-                console.log(json);
-                let installations: any = json["installations"];
+                let repositories: any = json["repositories"];
 
-                for (const installation of installations) {
-                    let account = installation["account"];
-                    let login = account["login"];
-                    let target_type = account["target_type"];
+                for (const repositorie of repositories) {
+                    let full_name = repositorie["full_name"];
+                    let private_ = repositorie["private"];
+
+                    let name = full_name;
+
+                    if (private_) {
+                        name += " (private)"
+                    }
+
                     results.push({
-                        name: `${login} (${target_type})`
+                        name: name
                     });
                 }
             }
 
             return res.status(200).json({
-                title: 'Connected Workspaces',
+                title: 'Connected Repositories',
                 list: results
             });
+        } else {
+            return res.status(404).send("no installed app");
         }
     } catch (e: any) {
         return res.status(500).send(e.toString());
