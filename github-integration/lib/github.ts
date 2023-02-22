@@ -32,7 +32,7 @@ export async function get_ins_token(flows_user: string, login: string): Promise<
             headers: {
                 "Content-Type": "application/json",
                 "Accept": "application/vnd.github.v3+json",
-                "User-Agent": "GitHub Extention of Second State flows.network",
+                "User-Agent": "GitHub Integration of Second State flows.network",
                 "Authorization": `Bearer ${token}`
             },
             method: "POST",

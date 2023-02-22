@@ -25,7 +25,7 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
         target: "https://api.github.com",
         headers: {
             "Accept": "application/vnd.github.v3+json",
-            "User-Agent": "GitHub Extention of Second State flows.network",
+            "User-Agent": "GitHub Integration of Second State flows.network",
             "Authorization": `Bearer ${ins_token}`
         },
         pathRewrite: [{
