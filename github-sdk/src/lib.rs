@@ -1,4 +1,4 @@
-//! GitHub integration for [Flows.network](https://test.flows.network)
+//! GitHub Integration for [Flows.network](https://test.flows.network)
 //!
 //! # Quick Start
 //!
@@ -18,7 +18,8 @@
 //!     if let EventPayload::IssueCommentEvent(e) = payload {
 //!         let issue_number = e.comment.id.0;
 //!
-//!         let octo = get_octo();
+//!         // installed app login
+//!         let octo = get_octo(Some(String::from("jetjinser")));
 //!
 //!         let _reaction = octo
 //!             .issues("jetjinser", "github-flows")
@@ -31,13 +32,13 @@
 //!
 //! > Note that the tokio used here is
 //! > [tokio_wasi](https://docs.rs/tokio_wasi/latest/tokio/)
-//! > with `full` features
+//! > with `macros` and `rt` features
 //!
 //! > ```toml
 //! > ...
 //! > [dependencies]
 //! > github-flows = "0.1.0"
-//! > tokio_wasi = { version = "1.25.1", features = ["full"] }
+//! > tokio_wasi = { version = "1.25.1", features = ["macros", "rt"] }
 //! > ...
 //! > ```
 //!
@@ -193,7 +194,7 @@ where
 
 static INSTANCE: OnceCell<octocrab::Octocrab> = OnceCell::new();
 
-/// Get a Octocrab Instance with GitHub Extension base_url
+/// Get a Octocrab Instance with GitHub Integration base_url
 pub fn get_octo(login: Option<String>) -> &'static octocrab::Octocrab {
     INSTANCE.get_or_init(|| {
         let flows_user = unsafe { _get_flows_user() };
