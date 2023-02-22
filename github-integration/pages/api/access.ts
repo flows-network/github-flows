@@ -13,9 +13,11 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
 
         if (action == "created") {
             let id = installation["id"]
-            await redis.set(`github:${sender}:${login}:installations`, id);
+            await redis.hset(`github:${sender}:installations`, {
+                [login]: id,
+            });
         } else if (action == "deleted") {
-            await redis.del(`github:${sender}:${login}:installations`);
+            await redis.hdel(`github:${sender}:installations`, login);
         }
     }
 

@@ -8,13 +8,7 @@ export const CLIENT_ID = env.GITHUB_CLIENT_ID || exit();
 export const CLIENT_SECRET = env.GITHUB_CLIENT_SECRET || exit();
 export const PRIVATE_KEY = env.GITHUB_PRIVATE_KEY || exit();
 
-export async function get_ins_token(flows_user: string, login: string): Promise<string | null> {
-    let ins_id = await redis.get(`github:${flows_user}:${login}:installations`);
-    if (!ins_id) {
-        // return res.status(401).send(`${flow_id} does not belong to ${flows_user}`);
-        return null;
-    }
-
+export async function get_ins_token(flows_user: string, ins_id: string): Promise<string | null> {
     let ins_token: string | null = await redis.get(`github:${flows_user}:ins_token`);
 
     if (!ins_token) {

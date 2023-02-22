@@ -15,7 +15,12 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(400).send("Bad request");
     }
 
-    let token = await get_ins_token(flows_user, owner);
+    let ins_id: string | null = await redis.hget(`github:${flows_user}:installations`, owner);
+    if (!ins_id) {
+        return res.status(401).send(`${owner} does not belong to ${flows_user}`);
+    }
+
+    let token = await get_ins_token(flows_user, ins_id);
     if (!token) {
         return res.status(400).send(
             "User has not been authorized, you need to "
