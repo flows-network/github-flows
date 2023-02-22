@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next"
 import { redis } from "@/lib/upstash";
 
 import issueCommentEvent from "resources/issue_comment_event.json";
-import { APP_NAME } from "@/lib/github";
+import { APP_NAME, get_ins_token } from "@/lib/github";
 
 const fn = async (req: NextApiRequest, res: NextApiResponse) => {
     const { flows_user, flow_id, owner, repo, events } = req.query;
@@ -11,7 +11,11 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(400).send("Bad request");
     }
 
-    let token = await redis.get(`github:${owner}:ins_token`);
+    if (typeof flows_user != "string" || typeof flow_id != "string" || typeof owner != "string" || typeof repo != "string") {
+        return res.status(400).send("Bad request");
+    }
+
+    let token = await get_ins_token(flows_user, owner);
     if (!token) {
         return res.status(400).send(
             "User has not been authorized, you need to "
@@ -26,9 +30,6 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
         eventsRealList = events;
     }
 
-    if (typeof flows_user != "string" || typeof flow_id != "string" || typeof owner != "string" || typeof repo != "string") {
-        return res.status(400).send("Bad request");
-    }
 
     if (typeof flow_id == "string") {
         let flows_user_in = await redis.hget(`github:${owner}/${repo}:trigger`, flow_id);
