@@ -479,9 +479,9 @@ checksum = "221996f774192f0f718773def8201c4ae31f02616a54ccfc2d358bb0e5cefdec"
 
 [[package]]
 name = "github-flows"
-version = "0.1.3"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5cf85b82bb111cbe6a8c0d67931dfc3807d767f3a84e057d1355e57237903a0e"
+checksum = "1ea77595f667804cc67bc669c93eaa868c214a4611c50bcc36115c702bf845e3"
 dependencies = [
  "http_req_wasi",
  "octocrab_wasi",

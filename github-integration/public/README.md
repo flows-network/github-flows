@@ -47,7 +47,7 @@ async fn handler(payload: EventPayload) {
 > crate-type = ["cdylib"]
 >
 > [dependencies]
-> github-flows = "0.1.0"
+> github-flows = "0.2"
 > tokio_wasi = { version = "1.25.1", features = ["macros", "rt"] }
 > ...
 > ```
