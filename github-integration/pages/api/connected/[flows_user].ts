@@ -23,7 +23,7 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
 
                 let ins_token = await get_ins_token(flows_user, ins_id);
                 if (!ins_token) {
-                    break;
+                    continue;
                 }
 
                 let api = "https://api.github.com/installation/repositories";
@@ -40,6 +40,10 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
 
                 let json = await resp.json();
                 let repositories: any = json["repositories"];
+
+                if (!repositories) {
+                    continue;
+                }
 
                 for (const repositorie of repositories) {
                     let full_name = repositorie["full_name"];
