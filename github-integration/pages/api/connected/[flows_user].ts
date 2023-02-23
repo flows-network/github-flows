@@ -23,7 +23,7 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
 
                 let ins_token = await get_ins_token(flows_user, ins_id);
                 if (!ins_token) {
-                    return res.status(500).send("no token");
+                    break;
                 }
 
                 let api = "https://api.github.com/installation/repositories";
