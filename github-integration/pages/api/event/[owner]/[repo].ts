@@ -8,8 +8,11 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(400).send("Bad request");
     }
 
-    if (typeof events != "string") {
-        return res.status(400).send("Bad request");
+    let eventsRealList;
+    if (typeof events == "string") {
+        eventsRealList = [events];
+    } else {
+        eventsRealList = events;
     }
 
     try {
@@ -19,7 +22,8 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
             let flowArray = [];
             for (let flows in allFlows) {
                 let t: any = allFlows[flows];
-                if (t.events.includes(events)) {
+                let intersection = eventsRealList.filter(v => { return t.events.indexOf(v) > -1 });
+                if (intersection.length != 0) {
                     flowArray.push({
                         flows_user: t.flows_user,
                         flow_id: flows,
