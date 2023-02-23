@@ -25,17 +25,21 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
 
     let installation = body["installation"];
     if (installation) {
-        let action = body["action"];
-        let login = installation["account"]["login"];
-        let sender = body["sender"]["login"];
+        let account = installation["account"];
+        if (account) {
+            let action = body["action"];
 
-        if (action == "created") {
-            let id = installation["id"]
-            await redis.hset(`github:${sender}:installations`, {
-                [login]: id,
-            });
-        } else if (action == "deleted") {
-            await redis.hdel(`github:${sender}:installations`, login);
+            let login = account["login"];
+            let sender = body["sender"]["login"];
+
+            if (action == "created") {
+                let id = installation["id"]
+                await redis.hset(`github:${sender}:installations`, {
+                    [login]: id,
+                });
+            } else if (action == "deleted") {
+                await redis.hdel(`github:${sender}:installations`, login);
+            }
         }
     }
 
