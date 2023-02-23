@@ -15,19 +15,17 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(400).send("Bad request");
     }
 
-    let unauthed = res.status(400).send(
-        "User has not been authorized, you need to "
-        + `[install the App](https://github.com/apps/${APP_NAME}/installations/new) to GitHub \`${owner}\` first`
-    );
+    let unauthed = "User has not been authorized, you need to "
+        + `[install the App](https://github.com/apps/${APP_NAME}/installations/new) to GitHub \`${owner}\` first`;
 
     let ins_id: string | null = await redis.hget(`github:${flows_user}:installations`, owner);
     if (!ins_id) {
-        return unauthed;
+        return res.status(400).send(unauthed);
     }
 
     let token = await get_ins_token(flows_user, ins_id);
     if (!token) {
-        return unauthed;
+        return res.status(400).send(unauthed);
     }
 
     let eventsRealList;
