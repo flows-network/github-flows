@@ -146,6 +146,7 @@ where
 static INSTANCE: OnceCell<octocrab::Octocrab> = OnceCell::new();
 
 /// Get a Octocrab Instance with GitHub Integration base_url
+/// if `login` is `None`, it will be flows.network username
 pub fn get_octo(login: Option<String>) -> &'static octocrab::Octocrab {
     INSTANCE.get_or_init(|| {
         let flows_user = unsafe { _get_flows_user() };
