@@ -37,15 +37,12 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
 
 
     if (typeof flow_id == "string") {
-        let flows_user_in = await redis.hget(`github:${owner}/${repo}:trigger`, flow_id);
-        if (!flows_user_in) {
-            await redis.hset(`github:${owner}/${repo}:trigger`, {
-                [flow_id]: {
-                    flows_user: flows_user,
-                    events: eventsRealList,
-                }
-            });
-        }
+        await redis.hset(`github:${owner}/${repo}:trigger`, {
+            [flow_id]: {
+                flows_user: flows_user,
+                events: eventsRealList,
+            }
+        });
     }
 
     return res.status(200).json(issueCommentEvent);
