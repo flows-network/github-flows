@@ -11,19 +11,20 @@ use github_flows::{
 #[no_mangle]
 #[tokio::main(flavor = "current_thread")]
 pub async fn run() {
+    // `some_owner` must be authed in flows.network
     listen_to_event("some_owner", "some_repo", vec!["issue_comment"], handler).await;
 }
 
 async fn handler(payload: EventPayload) {
     if let EventPayload::IssueCommentEvent(e) = payload {
-        let issue_number = e.comment.id.0;
+        let comment_id = e.comment.id.0;
 
         // installed app login
-        let octo = get_octo(Some(String::from("jetjinser")));
+        let octo = get_octo(Some(String::from("some_owner")));
 
         let _reaction = octo
-            .issues("jetjinser", "github-flows")
-            .create_reaction(issue_number, ReactionContent::Rocket)
+            .issues("some_owner", "some_repo")
+            .create_comment_reaction(comment_id, ReactionContent::Rocket)
             .await
             .unwrap();
     };
