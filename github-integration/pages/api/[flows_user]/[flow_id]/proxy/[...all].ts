@@ -22,7 +22,7 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(401).send(`${flow_id} does not belong to ${flows_user}`);
     }
 
-    let ins_token = await get_ins_token(flows_user, ins_id);
+    let ins_token = await get_ins_token(flow_id, ins_id);
     if (!ins_token) {
         return res.status(500).send("no token");
     }

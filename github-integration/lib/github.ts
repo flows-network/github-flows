@@ -8,8 +8,8 @@ export const CLIENT_ID = env.GITHUB_CLIENT_ID || exit();
 export const CLIENT_SECRET = env.GITHUB_CLIENT_SECRET || exit();
 export const PRIVATE_KEY = env.GITHUB_PRIVATE_KEY || exit();
 
-export async function get_ins_token(flows_user: string, ins_id: string): Promise<string | null> {
-    let ins_token: string | null = await redis.get(`github:${flows_user}:ins_token`);
+export async function get_ins_token(github_login: string, ins_id: string): Promise<string | null> {
+    let ins_token: string | null = await redis.get(`github:${github_login}:ins_token`);
 
     if (!ins_token) {
         let now = Date.now()
@@ -43,7 +43,7 @@ export async function get_ins_token(flows_user: string, ins_id: string): Promise
         let expiresAt = ins_json["expires_at"];
         let e = new Date(expiresAt);
 
-        await redis.set(`github:${flows_user}:ins_token`, ins_token, { pxat: e.getTime() - (30 * 1000) });
+        await redis.set(`github:${github_login}:ins_token`, ins_token, { pxat: e.getTime() - (30 * 1000) });
     }
 
     return ins_token;

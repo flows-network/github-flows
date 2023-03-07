@@ -21,7 +21,7 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
             for (const login in ins_ids) {
                 const ins_id: any = ins_ids[login];
 
-                let ins_token = await get_ins_token(flows_user, ins_id);
+                let ins_token = await get_ins_token(login, ins_id);
                 if (!ins_token) {
                     continue;
                 }
