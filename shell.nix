@@ -8,5 +8,7 @@ mkShell {
     wasmedge
 
     nodejs
+
+    proxychains
   ];
 }
