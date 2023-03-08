@@ -5,24 +5,22 @@ import { get_ins_token } from "@/lib/github";
 import { redis } from "@/lib/upstash";
 
 const fn = async (req: NextApiRequest, res: NextApiResponse) => {
-    // flows_user: flows user
-    // flow_id: github login
-    let { flows_user, flow_id } = req.query;
+    let { flows_user, github_login } = req.query;
 
-    if (!flows_user || !flow_id) {
+    if (!flows_user || !github_login) {
         return res.status(400).send("Bad request");
     }
 
-    if (typeof flows_user != "string" || typeof flow_id != "string") {
+    if (typeof flows_user != "string" || typeof github_login != "string") {
         return res.status(400).send("Bad request");
     }
 
-    let ins_id: string | null = await redis.hget(`github:${flows_user}:installations`, flow_id);
+    let ins_id: string | null = await redis.hget(`github:${flows_user}:installations`, github_login);
     if (!ins_id) {
-        return res.status(401).send(`${flow_id} does not belong to ${flows_user}`);
+        return res.status(401).send(`${github_login} does not belong to ${flows_user}`);
     }
 
-    let ins_token = await get_ins_token(flow_id, ins_id);
+    let ins_token = await get_ins_token(github_login, ins_id);
     if (!ins_token) {
         return res.status(500).send("no token");
     }
@@ -35,7 +33,7 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
             "Authorization": `Bearer ${ins_token}`
         },
         pathRewrite: [{
-            patternStr: `^/api/${flows_user}/${flow_id}/proxy`,
+            patternStr: `^/api/${flows_user}/proxy/${github_login}/`,
             replaceStr: "",
         }]
     })
