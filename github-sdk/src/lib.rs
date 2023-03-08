@@ -1,4 +1,4 @@
-#![doc = include_str!("../../github-integration/public/README.md")]
+#![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/README.md"))]
 
 pub use octocrab::{self, models::events::payload::EventPayload};
 
