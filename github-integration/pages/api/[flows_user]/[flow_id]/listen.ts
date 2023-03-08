@@ -23,7 +23,7 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(400).send(unauthed);
     }
 
-    let token = await get_ins_token(flows_user, ins_id);
+    let token = await get_ins_token(owner, ins_id);
     if (!token) {
         return res.status(400).send(unauthed);
     }
