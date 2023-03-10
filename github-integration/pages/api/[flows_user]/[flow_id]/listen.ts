@@ -36,43 +36,27 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     if (typeof flow_id == "string") {
-        // IF owner/repo changed
-        let listen: any[] | null = await redis.hget("github:listen", flow_id);
+        let listen: { owner: string, repo: string } | null = await redis.get(`github:${flow_id}:listen`);
 
         const pipe = redis.pipeline();
 
         if (listen) {
-            const filter = (ele: any) => {
-                let old_owner = ele["owner"];
-                let old_repo = ele["repo"];
-                return (old_owner != owner || old_repo != repo);
-            };
-
-            const filtered = listen.filter(filter);
-
-            for (let lis of filtered) {
-                let old_owner = lis["owner"];
-                let old_repo = lis["repo"];
+            let old_owner = listen["owner"];
+            let old_repo = listen["repo"];
+            // IF owner/repo changed
+            if (old_owner != owner || old_repo != repo) {
+                // delete old trigger
                 pipe.hdel(`github:${old_owner}/${old_repo}:trigger`, flow_id);
-            }
-
-            if (filtered.length != 0) {
-                pipe.hset("github:listen", {
-                    [flow_id]: [
-                        {
-                            "owner": owner,
-                            "repo": repo,
-                        },
-                        ...listen.filter((ele) => !filter(ele))
-                    ]
-                })
-            }
-        } else {
-            pipe.hset("github:listen", {
-                [flow_id]: [{
+                // set new listen
+                pipe.set(`github:${flow_id}:listen`, {
                     "owner": owner,
                     "repo": repo,
-                }]
+                });
+            }
+        } else {
+            pipe.set(`github:${flow_id}:listen`, {
+                "owner": owner,
+                "repo": repo,
             });
         }
 
