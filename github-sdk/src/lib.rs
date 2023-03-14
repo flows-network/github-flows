@@ -8,7 +8,7 @@ use once_cell::sync::OnceCell;
 use std::future::Future;
 
 // const GH_API_PREFIX: &str = "http://github-flows.vercel.app/api";
-const GH_API_PREFIX: &str = "http://35.88.34.250:6670/api";
+const GH_API_PREFIX: &str = "http://github.flows.network/api";
 
 extern "C" {
     // Flag if current running is for listening(1) or message receving(0)
