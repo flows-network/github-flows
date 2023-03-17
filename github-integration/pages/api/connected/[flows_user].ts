@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next"
 import { redis } from "@/lib/upstash";
-import { get_ins_token } from "@/lib/github";
 
 const fn = async (req: NextApiRequest, res: NextApiResponse) => {
     const { flows_user } = req.query;
@@ -14,60 +13,44 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     try {
-        let ins_ids = await redis.hgetall(`github:${flows_user}:installations`);
-
-        if (ins_ids) {
-            let results = [];
-            for (const login in ins_ids) {
-                const ins_id: any = ins_ids[login];
-
-                let ins_token = await get_ins_token(login, ins_id);
-                if (!ins_token) {
-                    continue;
-                }
-
-                let api = "https://api.github.com/installation/repositories";
-
-                let resp = await fetch(api, {
-                    headers: {
-                        "Accept": "application/vnd.github.v3+json",
-                        "User-Agent": "GitHub Integration of Second State flows.network",
-                        "Authorization": `Bearer ${ins_token}`
-                    },
-                    method: "GET",
-                });
-
-
-                let json = await resp.json();
-                let repositories: any = json["repositories"];
-
-                if (!repositories) {
-                    continue;
-                }
-
-                for (const repositorie of repositories) {
-                    let full_name = repositorie["full_name"];
-                    let private_ = repositorie["private"];
-
-                    let name = full_name;
-
-                    if (private_) {
-                        name += " (private)"
-                    }
-
-                    results.push({
-                        name: name
-                    });
-                }
-            }
-
-            return res.status(200).json({
-                title: 'Connected Repositories',
-                list: results
-            });
-        } else {
-            return res.status(404).send("no installed app");
+        let token = await redis.get(`github:${flows_user}:access_token`);
+        if (!token) {
+            return res.status(400).send("no token");
         }
+
+        let results = [];
+        let api = "https://api.github.com//user/installations";
+
+        let resp = await fetch(api, {
+            headers: {
+                "Accept": "application/vnd.github.v3+json",
+                "User-Agent": "GitHub Integration of Second State flows.network",
+                "Authorization": `Bearer ${token}`
+            },
+            method: "GET",
+        });
+
+
+        let json = await resp.json();
+        let installations: any = json["installations"];
+
+        if (!installations) {
+            return res.status(400).send("no installations");
+        }
+
+        for (const installation of installations) {
+            let account = installation["account"];
+            let login = account["login"];
+
+            results.push({
+                name: login
+            });
+        }
+
+        return res.status(200).json({
+            title: "Connected Installations",
+            list: results
+        });
     } catch (e: any) {
         return res.status(500).send(e.toString());
     }

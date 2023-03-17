@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next"
 import httpProxyMiddleware from "next-http-proxy-middleware";
 
-import { get_ins_token } from "@/lib/github";
 import { redis } from "@/lib/upstash";
 
 const fn = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -15,22 +14,14 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(400).send("Bad request");
     }
 
-    let ins_id: string | null = await redis.hget(`github:${flows_user}:installations`, github_login);
-    if (!ins_id) {
-        return res.status(401).send(`${github_login} does not belong to ${flows_user}`);
-    }
-
-    let ins_token = await get_ins_token(github_login, ins_id);
-    if (!ins_token) {
-        return res.status(500).send("no token");
-    }
+    let token = await redis.hget(`github:${flows_user}:access_token`, github_login);
 
     return httpProxyMiddleware(req, res, {
         target: "https://api.github.com",
         headers: {
             "Accept": "application/vnd.github.v3+json",
             "User-Agent": "GitHub Integration of Second State flows.network",
-            "Authorization": `Bearer ${ins_token}`
+            "Authorization": `Bearer ${token}`
         },
         pathRewrite: [{
             patternStr: `^/api/${flows_user}/proxy/${github_login}/`,
