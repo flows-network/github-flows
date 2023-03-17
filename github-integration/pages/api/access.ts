@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { CLIENT_ID, CLIENT_SECRET, isItMe } from "lib/github";
+import { CLIENT_ID, CLIENT_SECRET, whoami } from "lib/github";
 import { decrypt, REDIRECT_URL, State } from "@/lib/state";
 import { redis } from "@/lib/upstash";
 
@@ -31,9 +31,7 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
     let data = state_json.data;
     let iv = state_json.iv;
 
-    let dec = JSON.parse(decrypt(data, Buffer.from(iv, "base64")));
-    let flows_user = dec["flows_user"];
-    let login = dec["login"];
+    let flows_user = decrypt(data, Buffer.from(iv, "base64"));
 
     if (resp.ok) {
         let json = await resp.json();
@@ -41,7 +39,8 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
         let token = json["access_token"];
 
         if (token) {
-            if (await isItMe(login, token)) {
+            let login = await whoami(token);
+            if (login) {
                 await redis.hset(`github:${flows_user}:access_token`, {
                     [login]: token
                 });

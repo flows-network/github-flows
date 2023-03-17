@@ -20,7 +20,7 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(400).send("Bad request");
     }
 
-    let install_link = createInstallLink(flows_user, login);
+    let install_link = createInstallLink(flows_user);
     let unauthed = "User has not been authorized, you need to "
         + `[install the App](${install_link}) to GitHub \`${owner}\` first`;
 

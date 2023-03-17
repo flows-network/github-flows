@@ -30,12 +30,10 @@ export function decrypt(data: string, iv: Buffer): string {
     return decrypted;
 };
 
-export function createInstallLink(flows_user: string, login: string): string {
+export function createInstallLink(flows_user: string): string {
     let iv = crypto.randomBytes(16);
 
-    let data = { flows_user, login };
-
-    let state = encrypt(JSON.stringify(data), iv);
+    let state = encrypt(flows_user, iv);
     let stateInUrl = encodeURIComponent(JSON.stringify(state));
 
     return `https://github.com/apps/${APP_NAME}/installations/new?state=${stateInUrl}`;
