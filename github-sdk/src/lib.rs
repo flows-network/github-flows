@@ -92,8 +92,13 @@ pub fn revoke_listeners(owner: &str, repo: &str, events: Vec<&str>) {
 /// registered listener of current flow so you don't need to do it manually.
 ///
 /// `callback` is a callback function which will be called when new `Event` is received.
-pub async fn listen_to_event<F, Fut>(owner: &str, repo: &str, events: Vec<&str>, callback: F)
-where
+pub async fn listen_to_event<F, Fut>(
+    owner: &str,
+    repo: &str,
+    login: &str,
+    events: Vec<&str>,
+    callback: F,
+) where
     F: FnOnce(EventPayload) -> Fut,
     Fut: Future<Output = ()>,
 {
@@ -107,12 +112,13 @@ where
                 let mut writer = Vec::new();
                 let res = request::get(
                     format!(
-                        "{}/{}/{}/listen?owner={}&repo={}&{}",
+                        "{}/{}/{}/listen?owner={}&repo={}&login={}&{}",
                         GH_API_PREFIX,
                         flows_user,
                         flow_id,
                         owner,
                         repo,
+                        login,
                         events
                             .iter()
                             .map(|e| format!("events={}", e))
