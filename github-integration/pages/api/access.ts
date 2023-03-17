@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { CLIENT_ID, CLIENT_SECRET, isItMe } from "lib/github";
-import { decrypt, State } from "@/lib/state";
+import { decrypt, REDIRECT_URL, State } from "@/lib/state";
 import { redis } from "@/lib/upstash";
 
 const fn = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -55,7 +55,7 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(400).send(await resp.text());
     }
 
-    return res.redirect("https://flows.network/flows");
+    return res.redirect(REDIRECT_URL);
 }
 
 export default fn;

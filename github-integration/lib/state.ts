@@ -2,8 +2,9 @@ import crypto from "crypto";
 import { env, exit } from "process";
 import { APP_NAME } from "./github";
 
-const STATE_KEY = Buffer.from(env.STATE_KEY || exit(), "hex");
+export const REDIRECT_URL = env.REDIRECT_URL || exit();
 
+const STATE_KEY = Buffer.from(env.STATE_KEY || exit(), "hex");
 const algorithm = "aes-192-cbc";
 
 export type State = {
