@@ -1,7 +1,6 @@
 use http_req::request;
 use serde_json::Value;
 
-// const GH_API_PREFIX: &str = "https://github-flows.vercel.app/api";
 const GH_API_PREFIX: &str = "https://github.flows.network/api";
 
 extern "C" {
