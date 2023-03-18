@@ -5,10 +5,10 @@ pub use octocrab::{self, models::events::payload::EventPayload};
 use http_req::request;
 use once_cell::sync::OnceCell;
 
+use flowsnet_platform_sdk::write_error_log;
 use std::future::Future;
 
-// const GH_API_PREFIX: &str = "http://github-flows.vercel.app/api";
-const GH_API_PREFIX: &str = "http://35.88.34.250:6670/api";
+const GH_API_PREFIX: &str = "http://github.flows.network/api";
 
 extern "C" {
     // Flag if current running is for listening(1) or message receving(0)
@@ -22,7 +22,7 @@ extern "C" {
 
     fn get_event_body_length() -> i32;
     fn get_event_body(p: *mut u8) -> i32;
-    fn set_error_log(p: *const u8, len: i32);
+    fn set_error_code(code: i16);
 }
 
 unsafe fn _get_flows_user() -> String {
@@ -75,7 +75,8 @@ pub fn revoke_listeners(owner: &str, repo: &str, events: Vec<&str>) {
         match res.status_code().is_success() {
             true => (),
             false => {
-                set_error_log(writer.as_ptr(), writer.len() as i32);
+                write_error_log!(String::from_utf8_lossy(&writer));
+                set_error_code(format!("{}", res.status_code()).parse::<i16>().unwrap_or(0));
             }
         }
     }
@@ -93,9 +94,9 @@ pub fn revoke_listeners(owner: &str, repo: &str, events: Vec<&str>) {
 ///
 /// `callback` is a callback function which will be called when new `Event` is received.
 pub async fn listen_to_event<F, Fut>(
+    login: &str,
     owner: &str,
     repo: &str,
-    login: &str,
     events: Vec<&str>,
     callback: F,
 ) where
@@ -136,7 +137,10 @@ pub async fn listen_to_event<F, Fut>(
                         }
                     }
                     false => {
-                        set_error_log(writer.as_ptr(), writer.len() as i32);
+                        write_error_log!(String::from_utf8_lossy(&writer));
+                        set_error_code(
+                            format!("{}", res.status_code()).parse::<i16>().unwrap_or(0),
+                        );
                     }
                 }
             }

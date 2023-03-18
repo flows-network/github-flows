@@ -461,10 +461,10 @@ checksum = "221996f774192f0f718773def8201c4ae31f02616a54ccfc2d358bb0e5cefdec"
 
 [[package]]
 name = "github-flows"
-version = "0.1.0"
+version = "0.3.2"
 dependencies = [
  "http_req_wasi",
- "octocrab",
+ "octocrab_wasi",
  "once_cell",
  "reqwest_wasi",
  "serde_json",
@@ -926,9 +926,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "octocrab"
-version = "0.18.1"
-source = "git+https://github.com/jetjinser/octocrab#d900eb65da076e08bf42dde5ef59f6e3bf203b2f"
+name = "octocrab_wasi"
+version = "0.18.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2ae64af79f133e377a7e2e7342b78b411b32d3bb0f65072632a17b72e1ee4aaf"
 dependencies = [
  "arc-swap",
  "async-trait",
@@ -1804,3 +1805,35 @@ name = "zeroize"
 version = "1.5.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c394b5bd0c6f669e7275d9c20aa90ae064cb22e75a1cad54e1b34088034b149f"
+
+[[patch.unused]]
+name = "airtable-flows"
+version = "0.1.9"
+
+[[patch.unused]]
+name = "flowsnet-platform-sdk"
+version = "0.1.2"
+
+[[patch.unused]]
+name = "lambda-flows"
+version = "0.2.2"
+
+[[patch.unused]]
+name = "openai-flows"
+version = "0.1.6"
+
+[[patch.unused]]
+name = "schedule-flows"
+version = "0.1.9"
+
+[[patch.unused]]
+name = "sendgrid-flows"
+version = "0.1.2"
+
+[[patch.unused]]
+name = "slack-flows"
+version = "0.2.6"
+
+[[patch.unused]]
+name = "store-flows"
+version = "0.2.1"
