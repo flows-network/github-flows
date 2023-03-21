@@ -3,6 +3,7 @@ import { redis } from "@/lib/upstash";
 
 import issueCommentEvent from "resources/issue_comment_event.json";
 import { createInstallLink } from "@/lib/state";
+import { isCollaborator } from "@/lib/github";
 
 const fn = async (req: NextApiRequest, res: NextApiResponse) => {
     const { flows_user, flow_id, owner, repo, login, events } = req.query;
@@ -24,9 +25,13 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
     let unauthed = "User has not been authorized, you need to "
         + `[install the App](${install_link}) to GitHub \`${owner}\` first`;
 
-    let token = await redis.hget(`github:${flows_user}:access_token`, owner);
+    let token: string | null = await redis.hget(`github:${flows_user}:access_token`, owner);
     if (!token) {
         return res.status(400).send(unauthed);
+    }
+
+    if (!isCollaborator(token, owner, repo, login)) {
+        return res.status(400).send(`${login} cannot access ${owner}/${repo}`);
     }
 
     let eventsRealList;

@@ -26,3 +26,18 @@ export async function whoami(token: string): Promise<string | null> {
         return null;
     }
 }
+
+export async function isCollaborator(token: string, owner: string, repo: string, login: string): Promise<boolean> {
+    let url = `https://api.github.com/repos/${owner}/${repo}/collaborators/${login}`;
+
+    let resp = await fetch(url, {
+        method: "GET",
+        headers: {
+            "Accept": "application/vnd.github.v3+json",
+            "User-Agent": "GitHub Integration of Second State flows.network",
+            "Authorization": `Bearer ${token}`
+        },
+    });
+
+    return resp.status == 204;
+}
