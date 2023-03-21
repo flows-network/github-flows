@@ -25,7 +25,7 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
     let unauthed = "User has not been authorized, you need to "
         + `[install the App](${install_link}) to GitHub \`${owner}\` first`;
 
-    let token: string | null = await redis.hget(`github:${flows_user}:access_token`, owner);
+    let token: string | null = await redis.hget(`github:${flows_user}:access_token`, login);
     if (!token) {
         return res.status(400).send(unauthed);
     }
