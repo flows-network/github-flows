@@ -33,7 +33,6 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
             });
 
             let json = await resp.json();
-            console.log(json);
             let installations: any = json["installations"];
 
             if (!installations) {
