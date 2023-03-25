@@ -21,21 +21,18 @@ pub unsafe fn message() {
             .unwrap_or((String::new(), String::new()))
             .1;
 
-        let mut writer = Vec::new();
-        let res = request::get(
-            format!(
-                "{}/event/{}?events={}",
-                GH_API_PREFIX,
-                e["repository"]["full_name"].as_str().unwrap(),
-                event_name
-            ),
-            &mut writer,
-        )
-        .unwrap();
+        if let Some(rn) = e["repository"]["full_name"].as_str() {
+            let mut writer = Vec::new();
+            let res = request::get(
+                format!("{}/event/{}?events={}", GH_API_PREFIX, rn, event_name),
+                &mut writer,
+            )
+            .unwrap();
 
-        if res.status_code().is_success() {
-            if let Ok(flows) = String::from_utf8(writer) {
-                set_flows(flows.as_ptr(), flows.len() as i32);
+            if res.status_code().is_success() {
+                if let Ok(flows) = String::from_utf8(writer) {
+                    set_flows(flows.as_ptr(), flows.len() as i32);
+                }
             }
         }
     }
