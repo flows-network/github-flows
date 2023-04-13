@@ -19,7 +19,6 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
     return httpProxyMiddleware(req, res, {
         target: "https://api.github.com",
         headers: {
-            "Accept": "application/vnd.github.v3+json",
             "User-Agent": "GitHub Integration of Second State flows.network",
             "Authorization": `Bearer ${token}`
         },
