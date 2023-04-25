@@ -157,10 +157,20 @@ static INSTANCE: OnceCell<octocrab::Octocrab> = OnceCell::new();
 
 /// Get a Octocrab Instance with GitHub Integration base_url
 /// if `login` is `None`, it will be flows.network username
-pub fn get_octo(login: Option<String>) -> &'static octocrab::Octocrab {
+///
+/// # Examples
+///
+/// ```rust
+/// let octo_with_login = get_octo("jetjinser");
+/// let octo_without_login = get_octo(None);
+/// ```
+pub fn get_octo<'a, L>(login: L) -> &'static octocrab::Octocrab
+where
+    L: Into<Option<&'a str>>,
+{
     INSTANCE.get_or_init(|| {
         let flows_user = unsafe { _get_flows_user() };
-        let login = login.unwrap_or(flows_user.clone());
+        let login = login.into().unwrap_or(flows_user.as_str());
         octocrab::Octocrab::builder()
             .base_url(format!("{}/{}/proxy/{}/", GH_API_PREFIX, flows_user, login))
             .unwrap_or_else(|e| panic!("setting up base_url({}) failed: {}", GH_API_PREFIX, e))
