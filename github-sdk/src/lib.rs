@@ -8,7 +8,11 @@ use once_cell::sync::OnceCell;
 use flowsnet_platform_sdk::write_error_log;
 use std::future::Future;
 
-const GH_API_PREFIX: &str = "http://github.flows.network/api";
+lazy_static::lazy_static! {
+    static ref GH_API_PREFIX: String = String::from(
+        std::option_env!("GH_API_PREFIX").unwrap_or("http://github.flows.network/api")
+    );
+}
 
 extern "C" {
     // Flag if current running is for listening(1) or message receving(0)
@@ -42,6 +46,22 @@ unsafe fn _get_flow_id() -> String {
     String::from_utf8(flow_id).unwrap()
 }
 
+/// The GitHub login name that has been connected to
+/// [Flows.network](https://flows.network) platform.
+///
+/// If set as `Default`, and you have connected only one GitHub account,
+/// then whose login will be used.
+///
+/// If you want to specify a dedicated account, please set login name by `Provided`.
+///
+/// If there are more than one connected GitHub account, and this is set as `Default`,
+/// you will receive an undetermined error.
+///
+pub enum GithubLogin {
+    Default,
+    Provided(String),
+}
+
 /// Revoke previous registered listener of current flow.
 ///
 /// Most of the time you do not need to call this function. As inside
@@ -57,7 +77,7 @@ pub fn revoke_listeners(owner: &str, repo: &str, events: Vec<&str>) {
         let res = request::get(
             format!(
                 "{}/{}/{}/revoke?owner={}&repo={}&{}",
-                GH_API_PREFIX,
+                GH_API_PREFIX.as_str(),
                 flows_user,
                 flow_id,
                 owner,
@@ -94,7 +114,7 @@ pub fn revoke_listeners(owner: &str, repo: &str, events: Vec<&str>) {
 ///
 /// `callback` is a callback function which will be called when new `Event` is received.
 pub async fn listen_to_event<F, Fut>(
-    login: &str,
+    github_login: &GithubLogin,
     owner: &str,
     repo: &str,
     events: Vec<&str>,
@@ -103,6 +123,10 @@ pub async fn listen_to_event<F, Fut>(
     F: FnOnce(EventPayload) -> Fut,
     Fut: Future<Output = ()>,
 {
+    let login = match github_login {
+        GithubLogin::Default => "",
+        GithubLogin::Provided(s) => s.as_str(),
+    };
     unsafe {
         match is_listening() {
             // Calling register
@@ -114,7 +138,7 @@ pub async fn listen_to_event<F, Fut>(
                 let res = request::get(
                     format!(
                         "{}/{}/{}/listen?owner={}&repo={}&login={}&{}",
-                        GH_API_PREFIX,
+                        GH_API_PREFIX.as_str(),
                         flows_user,
                         flow_id,
                         owner,
@@ -156,24 +180,30 @@ pub async fn listen_to_event<F, Fut>(
 static INSTANCE: OnceCell<octocrab::Octocrab> = OnceCell::new();
 
 /// Get a Octocrab Instance with GitHub Integration base_url
-/// if `login` is `None`, it will be flows.network username
 ///
-/// # Examples
-///
-/// ```rust
-/// let octo_with_login = get_octo("jetjinser");
-/// let octo_without_login = get_octo(None);
-/// ```
-pub fn get_octo<'a, L>(login: L) -> &'static octocrab::Octocrab
-where
-    L: Into<Option<&'a str>>,
-{
+pub fn get_octo<'a>(github_login: &GithubLogin) -> &'static octocrab::Octocrab {
+    let login = match github_login {
+        // "_" as convension literal for default login
+        GithubLogin::Default => "_",
+        GithubLogin::Provided(s) => s.as_str(),
+    };
+
     INSTANCE.get_or_init(|| {
         let flows_user = unsafe { _get_flows_user() };
-        let login = login.into().unwrap_or(flows_user.as_str());
         octocrab::Octocrab::builder()
-            .base_url(format!("{}/{}/proxy/{}/", GH_API_PREFIX, flows_user, login))
-            .unwrap_or_else(|e| panic!("setting up base_url({}) failed: {}", GH_API_PREFIX, e))
+            .base_url(format!(
+                "{}/{}/proxy/{}/",
+                GH_API_PREFIX.as_str(),
+                flows_user,
+                login
+            ))
+            .unwrap_or_else(|e| {
+                panic!(
+                    "setting up base_url({}) failed: {}",
+                    GH_API_PREFIX.as_str(),
+                    e
+                )
+            })
             .build()
             .expect("Octocrab build failed")
     })

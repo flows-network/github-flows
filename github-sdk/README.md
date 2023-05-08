@@ -6,13 +6,14 @@
 use github_flows::{
     get_octo, listen_to_event,
     octocrab::models::{events::payload::EventPayload, reactions::ReactionContent},
+    GithubLogin,
 };
 
 #[no_mangle]
 #[tokio::main(flavor = "current_thread")]
 pub async fn run() {
-    // `some_owner` must be authed in flows.network
-    listen_to_event("some_owner", "some_repo", vec!["issue_comment"], handler).await;
+    // `some_login` must be authed in flows.network
+    listen_to_event(&GithubLogin::Provided(String::from("some_login")), "some_owner", "some_repo", vec!["issue_comment"], handler).await;
 }
 
 async fn handler(payload: EventPayload) {
@@ -20,7 +21,7 @@ async fn handler(payload: EventPayload) {
         let comment_id = e.comment.id.0;
 
         // installed app login
-        let octo = get_octo(Some(String::from("some_owner")));
+        let octo = get_octo(&GithubLogin::Provided(String::from("some_login")));
 
         let _reaction = octo
             .issues("some_owner", "some_repo")
@@ -54,7 +55,7 @@ async fn handler(payload: EventPayload) {
 > ```
 
 [listen_to_event()] is responsible for registering a listener for
-channel `some_owner` of workspace `some_repo`. When a new `issue_number` Event
+`some_owner/some_repo`. When a new `issue_number` Event
 coming, the callback `handler` is called with received
 `EventPayload` then [get_octo()] is used to get a
 [Octocrab](https://docs.rs/octocrab/latest/octocrab/struct.Octocrab.html)

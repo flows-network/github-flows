@@ -6,9 +6,9 @@ import { createInstallLink } from "@/lib/state";
 import { isCollaborator } from "@/lib/github";
 
 const fn = async (req: NextApiRequest, res: NextApiResponse) => {
-    const { flows_user, flow_id, owner, repo, login, events } = req.query;
+    let { flows_user, flow_id, owner, repo, login, events } = req.query;
 
-    if (!flows_user || !flow_id || !owner || !repo || !events || !login) {
+    if (!flows_user || !flow_id || !owner || !repo || !events) {
         return res.status(400).send("Bad request");
     }
 
@@ -16,7 +16,7 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
         || typeof flow_id != "string"
         || typeof owner != "string"
         || typeof repo != "string"
-        || typeof login != "string"
+        || (login && typeof login != "string")
     ) {
         return res.status(400).send("Bad request");
     }
@@ -25,7 +25,29 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
     let unauthed = "User has not been authorized, you need to "
         + `[install the App](${install_link}) to GitHub \`${owner}\` first`;
 
-    let token: string | null = await redis.hget(`github:${flows_user}:access_token`, login);
+    let token: string | null = null;
+    if (login) {
+        token = await redis.hget(`github:${flows_user}:access_token`, login);
+    } else {
+        let allLogins = await redis.hgetall(`github:${flows_user}:access_token`);
+        for (let l in allLogins) {
+            if (!login) {
+                // login will be set in the first loop
+                login = l;
+                token = allLogins[l] as string;
+            } else {
+                // Reset login to undefined if there are more than one connected account.
+                login = undefined;
+                token = null;
+                break;
+            }
+        }
+
+        if (!login) {
+            return res.status(400).send("More than one GitHub account has been connected. Please clearly provide an account to SDK.");
+        }
+    }
+
     if (!token) {
         return res.status(400).send(unauthed);
     }
