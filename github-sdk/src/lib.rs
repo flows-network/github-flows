@@ -46,6 +46,22 @@ unsafe fn _get_flow_id() -> String {
     String::from_utf8(flow_id).unwrap()
 }
 
+/// The GitHub login name that has been connected to
+/// [Flows.network](https://flows.network) platform.
+///
+/// If set as `Default`, and you have connected only one GitHub account,
+/// then whose login will be used.
+///
+/// If you want to specify a dedicated account, please set login name by `Provided`.
+///
+/// If there are more than one connected GitHub account, and this is set as `Default`,
+/// you will receive an undetermined error.
+///
+pub enum GithubLogin {
+    Default,
+    Provided(String),
+}
+
 /// Revoke previous registered listener of current flow.
 ///
 /// Most of the time you do not need to call this function. As inside
@@ -98,7 +114,7 @@ pub fn revoke_listeners(owner: &str, repo: &str, events: Vec<&str>) {
 ///
 /// `callback` is a callback function which will be called when new `Event` is received.
 pub async fn listen_to_event<F, Fut>(
-    login: &str,
+    github_login: &GithubLogin,
     owner: &str,
     repo: &str,
     events: Vec<&str>,
@@ -107,6 +123,10 @@ pub async fn listen_to_event<F, Fut>(
     F: FnOnce(EventPayload) -> Fut,
     Fut: Future<Output = ()>,
 {
+    let login = match github_login {
+        GithubLogin::Default => "",
+        GithubLogin::Provided(s) => s.as_str(),
+    };
     unsafe {
         match is_listening() {
             // Calling register
@@ -160,21 +180,16 @@ pub async fn listen_to_event<F, Fut>(
 static INSTANCE: OnceCell<octocrab::Octocrab> = OnceCell::new();
 
 /// Get a Octocrab Instance with GitHub Integration base_url
-/// if `login` is `None`, it will be flows.network username
 ///
-/// # Examples
-///
-/// ```rust
-/// let octo_with_login = get_octo("jetjinser");
-/// let octo_without_login = get_octo(None);
-/// ```
-pub fn get_octo<'a, L>(login: L) -> &'static octocrab::Octocrab
-where
-    L: Into<Option<&'a str>>,
-{
+pub fn get_octo<'a>(github_login: &GithubLogin) -> &'static octocrab::Octocrab {
+    let login = match github_login {
+        // "_" as convension literal for default login
+        GithubLogin::Default => "_",
+        GithubLogin::Provided(s) => s.as_str(),
+    };
+
     INSTANCE.get_or_init(|| {
         let flows_user = unsafe { _get_flows_user() };
-        let login = login.into().unwrap_or(flows_user.as_str());
         octocrab::Octocrab::builder()
             .base_url(format!(
                 "{}/{}/proxy/{}/",
