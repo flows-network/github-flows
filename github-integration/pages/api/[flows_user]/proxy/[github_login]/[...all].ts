@@ -62,3 +62,9 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
 };
 
 export default fn;
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+}
