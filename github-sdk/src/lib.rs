@@ -8,7 +8,11 @@ use once_cell::sync::OnceCell;
 use flowsnet_platform_sdk::write_error_log;
 use std::future::Future;
 
-const GH_API_PREFIX: &str = "http://github.flows.network/api";
+lazy_static::lazy_static! {
+    static ref GH_API_PREFIX: String = String::from(
+        std::option_env!("GH_API_PREFIX").unwrap_or("http://github.flows.network/api")
+    );
+}
 
 extern "C" {
     // Flag if current running is for listening(1) or message receving(0)
@@ -57,7 +61,7 @@ pub fn revoke_listeners(owner: &str, repo: &str, events: Vec<&str>) {
         let res = request::get(
             format!(
                 "{}/{}/{}/revoke?owner={}&repo={}&{}",
-                GH_API_PREFIX,
+                GH_API_PREFIX.as_str(),
                 flows_user,
                 flow_id,
                 owner,
@@ -114,7 +118,7 @@ pub async fn listen_to_event<F, Fut>(
                 let res = request::get(
                     format!(
                         "{}/{}/{}/listen?owner={}&repo={}&login={}&{}",
-                        GH_API_PREFIX,
+                        GH_API_PREFIX.as_str(),
                         flows_user,
                         flow_id,
                         owner,
@@ -172,8 +176,19 @@ where
         let flows_user = unsafe { _get_flows_user() };
         let login = login.into().unwrap_or(flows_user.as_str());
         octocrab::Octocrab::builder()
-            .base_url(format!("{}/{}/proxy/{}/", GH_API_PREFIX, flows_user, login))
-            .unwrap_or_else(|e| panic!("setting up base_url({}) failed: {}", GH_API_PREFIX, e))
+            .base_url(format!(
+                "{}/{}/proxy/{}/",
+                GH_API_PREFIX.as_str(),
+                flows_user,
+                login
+            ))
+            .unwrap_or_else(|e| {
+                panic!(
+                    "setting up base_url({}) failed: {}",
+                    GH_API_PREFIX.as_str(),
+                    e
+                )
+            })
             .build()
             .expect("Octocrab build failed")
     })
