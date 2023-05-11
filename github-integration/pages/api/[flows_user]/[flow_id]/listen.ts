@@ -52,7 +52,7 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(400).send(unauthed);
     }
 
-    if (!isCollaborator(token, owner, repo, login)) {
+    if (!await isCollaborator(token, owner, repo, login)) {
         return res.status(400).send(`${login} cannot access ${owner}/${repo}`);
     }
 
