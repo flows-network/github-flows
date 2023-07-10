@@ -158,7 +158,7 @@ pub async fn listen_to_event<F, Fut>(
                 match res.status_code().is_success() {
                     true => {
                         let output = format!(
-                            "[{}] Listening to events '{}' on '{}/{}'",
+                            "[{}] Listening to events `{}` on `{}/{}`",
                             std::env!("CARGO_CRATE_NAME"),
                             events.join(","),
                             owner,
