@@ -26,6 +26,7 @@ extern "C" {
 
     fn get_event_body_length() -> i32;
     fn get_event_body(p: *mut u8) -> i32;
+    fn set_output(p: *const u8, len: i32);
     fn set_error_code(code: i16);
 }
 
@@ -156,6 +157,15 @@ pub async fn listen_to_event<F, Fut>(
 
                 match res.status_code().is_success() {
                     true => {
+                        let output = format!(
+                            "[{}] Listening to events '{}' on '{}/{}'",
+                            std::env!("CARGO_CRATE_NAME"),
+                            events.join(","),
+                            owner,
+                            repo
+                        );
+                        set_output(output.as_ptr(), output.len() as i32);
+
                         if let Ok(event) = serde_json::from_slice::<EventPayload>(&writer) {
                             callback(event).await;
                         }
