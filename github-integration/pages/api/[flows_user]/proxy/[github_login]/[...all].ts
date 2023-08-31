@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next"
 import httpProxyMiddleware from "next-http-proxy-middleware";
 
-import { redis } from "@/lib/upstash";
+import { pool } from "@/lib/pg";
 import { createInstallLink } from "@/lib/state";
 
 const fn = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -19,15 +19,28 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
     let login = github_login === '_' ? undefined : github_login;
 
     let token: string | null = null;
+
     if (login) {
-        token = await redis.hget(`github:${flows_user}:access_token`, github_login);
+        const queryResult = await pool.query(`
+            SELECT github_access_token FROM login_oauthor
+            WHERE flows_user = $1 and github_login = $2
+        `, [flows_user, github_login]);
+        if (queryResult.rowCount > 0) {
+            token = queryResult.rows[0].github_access_token;
+        }
     } else {
-        let allLogins = await redis.hgetall(`github:${flows_user}:access_token`);
-        for (let l in allLogins) {
+        const queryResult = await pool.query(`
+            SELECT github_login, github_access_token FROM login_oauthor
+            WHERE flows_user = $1
+        `, [flows_user]);
+
+        const rows = queryResult.rows;
+
+        for (let i in rows) {
             if (!login) {
                 // login will be set in the first loop
-                login = l;
-                token = allLogins[l] as string;
+                login = rows[i].github_login;
+                token = rows[i].github_access_token;
             } else {
                 // Reset login to undefined if there are more than one connected account.
                 login = undefined;

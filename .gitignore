@@ -1,10 +1,10 @@
-*/target/
+**/target
 
 .direnv/
 .envrc
 .env
 .env.*
 
-build.rs
+**/build.rs
 
 **/Cargo.lock

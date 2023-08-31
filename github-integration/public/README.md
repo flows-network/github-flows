@@ -1,21 +1,22 @@
-# GitHub Integration for [Flows.network](https://test.flows.network)
+# GitHub Integration for [Flows.network](https://flows.network)
 
 ## Quick Start
 
 ```rust
 use github_flows::{
-    get_octo, listen_to_event,
+    event_handler, get_octo, listen_to_event,
     octocrab::models::{events::payload::EventPayload, reactions::ReactionContent},
     GithubLogin,
 };
 
 #[no_mangle]
 #[tokio::main(flavor = "current_thread")]
-pub async fn run() {
+pub async fn on_deploy() {
     // `some_login` must be authed in flows.network
-    listen_to_event(&GithubLogin::Provided(String::from("some_login")), "some_owner", "some_repo", vec!["issue_comment"], handler).await;
+    listen_to_event(&GithubLogin::Provided(String::from("some_login")), "some_owner", "some_repo", vec!["issue_comment"]).await;
 }
 
+#[event_handler]
 async fn handler(payload: EventPayload) {
     if let EventPayload::IssueCommentEvent(e) = payload {
         let comment_id = e.comment.id.0;
@@ -49,14 +50,15 @@ async fn handler(payload: EventPayload) {
 > crate-type = ["cdylib"]
 >
 > [dependencies]
-> github-flows = "0.2"
+> github-flows = "0.6"
 > tokio_wasi = { version = "1.25.1", features = ["macros", "rt"] }
+> serde_json = "1"
 > ...
 > ```
 
-[listen_to_event()] is responsible for registering a listener for
+[listen_to_event](https://docs.rs/github-flows/latest/github_flows/fn.listen_to_event.html) is responsible for registering a listener for
 `some_owner/some_repo`. When a new `issue_number` Event
-coming, the callback `handler` is called with received
-`EventPayload` then [get_octo()] is used to get a
+coming, the fn `handler` decorated by [event_handler](https://docs.rs/github-flows/latest/github_flows/attr.event_handler.html) macro is called with received
+`EventPayload` then [get_octo](https://docs.rs/github-flows/latest/github_flows/fn.get_octo.html) is used to get a
 [Octocrab](https://docs.rs/octocrab/latest/octocrab/struct.Octocrab.html)
 Instance to call GitHub api

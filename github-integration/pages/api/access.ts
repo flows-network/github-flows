@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { CLIENT_ID, CLIENT_SECRET, whoami } from "lib/github";
 import { decrypt, REDIRECT_URL, State } from "@/lib/state";
-import { redis } from "@/lib/upstash";
+import { pool } from "@/lib/pg";
 
 const fn = async (req: NextApiRequest, res: NextApiResponse) => {
     let { code, state } = req.query;
@@ -41,9 +41,12 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
         if (token) {
             let login = await whoami(token);
             if (login) {
-                await redis.hset(`github:${flows_user}:access_token`, {
-                    [login]: token
-                });
+                await pool.query(`
+                    INSERT INTO login_oauthor (flows_user, github_login, github_access_token)
+                    VALUES ($1, $2, $3)
+                    ON CONFLICT (flows_user, github_login) DO UPDATE SET
+                    github_access_token = excluded.github_access_token
+                `, [flows_user, login, token]);
             } else {
                 return res.status(400).send("login inconsistent");
             }

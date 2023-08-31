@@ -1,19 +1,19 @@
 import type { NextApiRequest, NextApiResponse } from "next"
-import { redis } from "@/lib/upstash";
+import { pool } from "@/lib/pg";
 
 import issueCommentEvent from "resources/issue_comment_event.json";
 import { createInstallLink } from "@/lib/state";
 import { isCollaborator } from "@/lib/github";
 
 const fn = async (req: NextApiRequest, res: NextApiResponse) => {
-    let { flows_user, flow_id, owner, repo, login, events } = req.query;
+    let { flows_user: flowsUser, flow_id: flowId, owner, repo, handler_fn: handlerFn, login, events } = req.query;
 
-    if (!flows_user || !flow_id || !owner || !repo || !events) {
+    if (!flowsUser || !flowId || !owner || !repo || !events) {
         return res.status(400).send("Bad request");
     }
 
-    if (typeof flows_user != "string"
-        || typeof flow_id != "string"
+    if (typeof flowsUser != "string"
+        || typeof flowId != "string"
         || typeof owner != "string"
         || typeof repo != "string"
         || (login && typeof login != "string")
@@ -21,20 +21,32 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(400).send("Bad request");
     }
 
-    let install_link = createInstallLink(flows_user);
+    let install_link = createInstallLink(flowsUser);
     let unauthed = "User has not been authorized, you need to "
         + `[install the App](${install_link}) to GitHub \`${owner}\` first`;
 
     let token: string | null = null;
     if (login) {
-        token = await redis.hget(`github:${flows_user}:access_token`, login);
+        const queryResult = await pool.query(`
+            SELECT github_access_token FROM login_oauthor
+            WHERE flows_user = $1 and github_login = $2
+        `, [flowsUser, login]);
+        if (queryResult.rowCount > 0) {
+            token = queryResult.rows[0].github_access_token;
+        }
     } else {
-        let allLogins = await redis.hgetall(`github:${flows_user}:access_token`);
-        for (let l in allLogins) {
+        const queryResult = await pool.query(`
+            SELECT github_login, github_access_token FROM login_oauthor
+            WHERE flows_user = $1
+        `, [flowsUser]);
+
+        const rows = queryResult.rows;
+
+        for (let i in rows) {
             if (!login) {
                 // login will be set in the first loop
-                login = l;
-                token = allLogins[l] as string;
+                login = rows[i].github_login;
+                token = rows[i].github_access_token;
             } else {
                 // Reset login to undefined if there are more than one connected account.
                 login = undefined;
@@ -52,7 +64,7 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(400).send(unauthed);
     }
 
-    if (!await isCollaborator(token, owner, repo, login)) {
+    if (!await isCollaborator(token, owner, repo, login as string)) {
         return res.status(400).send(`${login} cannot access ${owner}/${repo}`);
     }
 
@@ -63,40 +75,12 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
         eventsRealList = events;
     }
 
-    if (typeof flow_id == "string") {
-        let listen: { owner: string, repo: string } | null = await redis.get(`github:${flow_id}:listen`);
-
-        const pipe = redis.pipeline();
-
-        if (listen) {
-            let old_owner = listen["owner"];
-            let old_repo = listen["repo"];
-            // IF owner/repo changed
-            if (old_owner != owner || old_repo != repo) {
-                // delete old trigger
-                pipe.hdel(`github:${old_owner}/${old_repo}:trigger`, flow_id);
-                // set new listen
-                pipe.set(`github:${flow_id}:listen`, {
-                    "owner": owner,
-                    "repo": repo,
-                });
-            }
-        } else {
-            pipe.set(`github:${flow_id}:listen`, {
-                "owner": owner,
-                "repo": repo,
-            });
-        }
-
-        pipe.hset(`github:${owner}/${repo}:trigger`, {
-            [flow_id]: {
-                flows_user: flows_user,
-                events: eventsRealList,
-            }
-        });
-
-        await pipe.exec();
-    }
+    await pool.query(`
+        INSERT INTO listener (flows_user, flow_id, github_owner, github_repo, handler_fn, events)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        ON CONFLICT (flows_user, flow_id, github_owner, github_repo) DO UPDATE SET
+        handler_fn = excluded.handler_fn, events = excluded.events
+    `, [flowsUser, flowId, owner, repo, handlerFn, eventsRealList]);
 
     return res.status(200).json(issueCommentEvent);
 }
