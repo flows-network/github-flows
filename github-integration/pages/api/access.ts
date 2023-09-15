@@ -57,7 +57,9 @@ const fn = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(400).send(await resp.text());
     }
 
-    return res.redirect(REDIRECT_URL);
+    return res.status(200).send(`
+        <script>window.close()</script>
+    `);
 }
 
 export default fn;
