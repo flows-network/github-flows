@@ -37,10 +37,6 @@ async fn handler(event: Result<WebhookEvent, serde_json::Error>) {
 }
 ```
 
-> Note that the tokio used here is
-> [tokio_wasi](https://docs.rs/tokio_wasi/latest/tokio/)
-> with `macros` and `rt` features
-
 ## example `Cargo.toml`
 
 > ```toml
@@ -54,8 +50,8 @@ async fn handler(event: Result<WebhookEvent, serde_json::Error>) {
 > crate-type = ["cdylib"]
 >
 > [dependencies]
-> github-flows = "0.6"
-> tokio_wasi = { version = "1.25.1", features = ["macros", "rt"] }
+> github-flows = "0.8"
+> tokio = { version = "1", features = ["macros", "rt"] }
 > serde_json = "1"
 > ...
 > ```
@@ -63,6 +59,6 @@ async fn handler(event: Result<WebhookEvent, serde_json::Error>) {
 [listen_to_event](https://docs.rs/github-flows/latest/github_flows/fn.listen_to_event.html) is responsible for registering a listener for
 `some_owner/some_repo`. When a new `issue_number` Event
 coming, the fn `handler` decorated by [event_handler](https://docs.rs/github-flows/latest/github_flows/attr.event_handler.html) macro is called with received
-`EventPayload` then [get_octo](https://docs.rs/github-flows/latest/github_flows/fn.get_octo.html) is used to get a
+`WebhookEvent` then [get_octo](https://docs.rs/github-flows/latest/github_flows/fn.get_octo.html) is used to get a
 [Octocrab](https://docs.rs/octocrab/latest/octocrab/struct.Octocrab.html)
 Instance to call GitHub api
