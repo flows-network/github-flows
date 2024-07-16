@@ -2,7 +2,6 @@
 
 pub use octocrab::{self, models::events::payload::EventPayload};
 
-use http_req::request;
 use once_cell::sync::OnceCell;
 
 pub use github_flows_macros::*;
@@ -80,28 +79,26 @@ pub async fn listen_to_event(
         let flows_user = _get_flows_user();
         let flow_id = _get_flow_id();
 
-        let mut writer = Vec::new();
-        let res = request::get(
-            format!(
-                "{}/{}/{}/listen?owner={}&repo={}&login={}&handler_fn={}&{}",
-                GH_API_PREFIX.as_str(),
-                flows_user,
-                flow_id,
-                owner,
-                repo,
-                login,
-                "__github__on_event_received",
-                events
-                    .iter()
-                    .map(|e| format!("events={}", e))
-                    .collect::<Vec<String>>()
-                    .join("&")
-            ),
-            &mut writer,
-        )
+        let res = reqwest::get(format!(
+            "{}/{}/{}/listen?owner={}&repo={}&login={}&handler_fn={}&{}",
+            GH_API_PREFIX.as_str(),
+            flows_user,
+            flow_id,
+            owner,
+            repo,
+            login,
+            "__github__on_event_received",
+            events
+                .iter()
+                .map(|e| format!("events={}", e))
+                .collect::<Vec<String>>()
+                .join("&")
+        ))
+        .await
         .unwrap();
 
-        match res.status_code().is_success() {
+        let status = res.status();
+        match status.is_success() {
             true => {
                 let output = format!(
                     "[{}] Listening to events `{}` on `{}/{}`",
@@ -113,8 +110,8 @@ pub async fn listen_to_event(
                 set_output(output.as_ptr(), output.len() as i32);
             }
             false => {
-                write_error_log!(String::from_utf8_lossy(&writer));
-                set_error_code(format!("{}", res.status_code()).parse::<i16>().unwrap_or(0));
+                write_error_log!(String::from_utf8_lossy(res.bytes().await.unwrap().as_ref()));
+                set_error_code(status.as_u16() as i16);
             }
         }
     }
@@ -134,7 +131,7 @@ pub fn get_octo<'a>(github_login: &GithubLogin) -> &'static octocrab::Octocrab {
     INSTANCE.get_or_init(|| {
         let flows_user = unsafe { _get_flows_user() };
         octocrab::Octocrab::builder()
-            .base_url(format!(
+            .base_uri(format!(
                 "{}/{}/proxy/{}/",
                 GH_API_PREFIX.as_str(),
                 flows_user,

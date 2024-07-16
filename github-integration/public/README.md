@@ -5,7 +5,10 @@
 ```rust
 use github_flows::{
     event_handler, get_octo, listen_to_event,
-    octocrab::models::{events::payload::EventPayload, reactions::ReactionContent},
+     octocrab::models::{
+        reactions::ReactionContent,
+        webhook_events::{WebhookEvent, WebhookEventPayload},
+    }
     GithubLogin,
 };
 
@@ -17,8 +20,9 @@ pub async fn on_deploy() {
 }
 
 #[event_handler]
-async fn handler(payload: EventPayload) {
-    if let EventPayload::IssueCommentEvent(e) = payload {
+async fn handler(event: Result<WebhookEvent, serde_json::Error>) {
+    let payload = event.unwrap();
+    if let WebhookEventPayload::IssueComment(e) = payload.specific {
         let comment_id = e.comment.id.0;
 
         // installed app login
