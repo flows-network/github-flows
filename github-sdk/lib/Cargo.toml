@@ -1,6 +1,6 @@
 [package]
 name = "github-flows"
-version = "0.8.0"
+version = "0.8.1"
 edition = "2021"
 license = "MIT/Apache-2.0"
 description = "GitHub Integration for flows.network"
@@ -9,10 +9,13 @@ documentation = "https://docs.rs/github-flows"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [package.metadata.docs.rs]
-default-target = "wasm32-wasi"
+targets = ["wasm32-wasi"]
+rustc-args = ["--cfg", "wasmedge", "--cfg", "tokio_unstable"]
 
 [dependencies]
-reqwest = { version = "0.11", default-features = false, features = ["rustls-tls"] }
+reqwest = { version = "0.11", default-features = false, features = [
+    "rustls-tls",
+] }
 serde_json = "1.0"
 tokio = { version = "1", features = ["rt", "macros", "net", "time"] }
 octocrab = { version = "0.33", default-features = false }
